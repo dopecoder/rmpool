@@ -11,7 +11,7 @@ int main(int argc, char const *argv[])
 { 
 	int sock = 0, valread; 
 	struct sockaddr_in serv_addr; 
-	const char *hello = "Hello from client"; 
+	const char *alloc_req = "100";
 	char buffer[1024] = {0}; 
 	if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) 
 	{ 
@@ -34,10 +34,11 @@ int main(int argc, char const *argv[])
 		printf("\nConnection Failed \n"); 
 		return -1; 
 	} 
+			
+	send(sock, alloc_req, strlen(alloc_req), 0);
+	printf("Request sent for page size: %s\n", alloc_req);
 
-	send(sock , hello , strlen(hello) , 0 ); 
-	printf("Hello message sent\n"); 
-	valread = read( sock , buffer, 1024); 
-	printf("%s\n",buffer ); 
+	valread = read(sock, buffer, 1024);
+	printf("Fd recieved at client %s\n", buffer);	
 	return 0; 
 } 

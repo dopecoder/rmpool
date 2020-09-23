@@ -1,11 +1,25 @@
 // Server side C/C++ program to demonstrate Socket programming 
 #include <unistd.h> 
+#include <fcntl.h>
 #include <stdio.h> 
 #include <sys/socket.h> 
 #include <stdlib.h> 
 #include <netinet/in.h> 
-#include <string.h> 
+#include <string.h>
+#include <sys/mman.h>
 #define PORT 8080 
+
+int create_mmap(size_t sz) {
+	int fd = open(".", O_TMPFILE | O_RDWR, S_IRUSR | S_IWUSR);
+	if(fd == -1)
+		printf("Error while opening file\n");
+
+	char* addr = (char*)mmap(NULL, sz, PROT_WRITE, MAP_PRIVATE, fd, 0);
+
+	printf("mmap address: %s\n", addr);
+	return fd;
+}
+
 int main(int argc, char const *argv[]) 
 { 
 	int server_fd, new_socket, valread; 
@@ -51,9 +65,16 @@ int main(int argc, char const *argv[])
 		perror("accept"); 
 		exit(EXIT_FAILURE); 
 	} 
-	valread = read( new_socket , buffer, 1024); 
-	printf("%s\n",buffer ); 
-	send(new_socket , hello , strlen(hello) , 0 ); 
-	printf("Hello message sent\n"); 
-	return 0; 
+
+	valread = read( new_socket, buffer, 1024);
+	int page_sz = atoi(buffer);
+	printf("Page size received: %d\n", page_sz);
+
+	int fd = create_mmap(page_sz);
+	char fd_str[20];
+	sprintf(fd_str, "%d", fd);
+	send(new_socket, fd_str, strlen(fd_str), 0);
+	printf("File descriptor sent: %s\n", fd_str);
+	close(fd);
+	return 0;	
 } 
