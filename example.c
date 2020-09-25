@@ -13,7 +13,7 @@ static void pf_handler (uint64_t faulting_address)
 		if (fault_type == FAULT_READ) {
 			read_page(handle);
 		} else { // it's  a write
-			write_page(handle)
+			write_page(handle);
 		}
 
 		// OTHERWISE ERROR
@@ -24,7 +24,7 @@ static void pf_handler (uint64_t faulting_address)
 
 static char * alloc_remote_mem(size_t size) {
 	// use your remote API here
-	handle * handle = get_remote_page();
+	handle * handle = get_new_remote_page();
 	char * dummy_addr = mmap(....,PROT_NONE,...);
 	insert_handle_into_hashtable(dummy_addr, handle);
 	return dummy_addr;

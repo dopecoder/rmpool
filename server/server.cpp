@@ -10,12 +10,9 @@
 #define PORT 8080 
 
 int create_mmap(size_t sz) {
-	int fd = open(".", O_TMPFILE | O_RDWR, S_IRUSR | S_IWUSR);
-	if(fd == -1)
-		printf("Error while opening file\n");
-
-	char* addr = (char*)mmap(NULL, sz, PROT_WRITE, MAP_PRIVATE, fd, 0);
-
+	int handle = 12341;
+	char* addr = (char*)mmap(NULL, sz, PROT_WRITE, MAP_PRIVATE, MAP_ANONYMOUS, 0);
+	hasbtable_insert(addr, handle);
 	printf("mmap address: %s\n", addr);
 	return fd;
 }
