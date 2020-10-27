@@ -17,6 +17,18 @@
 
 #include "uffdman.hpp"
 
+#ifndef DEBUG_PRINTS
+#define DEBUG_PRINTS 0
+#endif 
+
+#if DEBUG_PRINTS
+#define err(msg) perror(msg)
+#define cout(exp) cout << exp;
+#else
+#define err(msg) 
+#define cout(exp)
+#endif
+
 #define PAGE_SIZE sysconf(_SC_PAGE_SIZE)
 
 using namespace std;
@@ -97,7 +109,7 @@ static void* fault_handler_thread(void *arg)
     {
         page = (char*) mmap(NULL, PAGE_SIZE, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
         if (page == MAP_FAILED)
-        	cerr << "mmap in handler failed" << endl;
+        	cout("mmap in userfault handler failed" << endl);
     }
 
     /* Loop, handling incoming events on the userfaultfd
@@ -114,16 +126,14 @@ static void* fault_handler_thread(void *arg)
         nready = poll(&pollfd, 1, -1);
         if (nready == -1)
        		break;
-
-        cout << ("\nfault_handler_thread():\n");
-        cout << "    poll() returns: nready = " << nready << "; POLLIN = " << (int) ((pollfd.revents & POLLIN) != 0) << "; POLLERR = " << (int) ((pollfd.revents & POLLERR) != 0) << endl;
-
+        cout("\nfault_handler_thread():" << endl);
+        cout("    poll() returns: nready = " << nready << "; POLLIN = " << (int) ((pollfd.revents & POLLIN) != 0) << "; POLLERR = " << (int) ((pollfd.revents & POLLERR) != 0) << endl);
         /* Read an event from the userfaultfd */
 
         nread = read(uffd, &msg, sizeof(msg));
         if (nread == 0) 
         {
-            cout << ("EOF on userfaultfd!\n");
+            cout("EOF on userfaultfd!" << endl);
             break;
         }
 
@@ -132,22 +142,20 @@ static void* fault_handler_thread(void *arg)
 
 		if (msg.event == UFFD_EVENT_UNMAP) 
 		{
-			handle_unmap_event(uffd);
+			// TODO: Handle arbitrary unmap event
 			continue;
 		}
         /* We expect only one kind of event; verify that assumption */
 		
         if (msg.event != UFFD_EVENT_PAGEFAULT) 
         {
-            cerr << "Unexpected event on userfaultfd\n";
+            err("Unexpected event on userfaultfd");
 			break;
         }
 
         /* Display info about the page-fault event */
-
-        cout << ("\tUFFD_EVENT_PAGEFAULT event: ");
-        cout << "flags = " << msg.arg.pagefault.flags << "; address = " << msg.arg.pagefault.address << endl;
-
+        cout("\tUFFD_EVENT_PAGEFAULT event: ");
+        cout("flags = " << msg.arg.pagefault.flags << "; address = " << msg.arg.pagefault.address << endl);
         fault_cnt++;
 
         char* region_start_addr = (char*) uffd_start_addr_map[uffd];
@@ -179,16 +187,13 @@ static void* fault_handler_thread(void *arg)
         /* We need to handle page faults in units of pages(!).
            So, round faulting address down to page boundary */
 
-        uffdio_copy.dst = (unsigned long) faulting_addr &
-            ~(PAGE_SIZE - 1);
+        uffdio_copy.dst = (unsigned long) faulting_addr & ~(PAGE_SIZE - 1);
         uffdio_copy.len = PAGE_SIZE;
         uffdio_copy.mode = 0;
         uffdio_copy.copy = 0;
         if (ioctl(uffd, UFFDIO_COPY, &uffdio_copy) == -1)
         	break;
-
-        cout << "\t(uffdio_copy.copy returned " << uffdio_copy.copy << endl;
-
+        cout("\t(uffdio_copy.copy returned " << uffdio_copy.copy << endl);
 		uffd_prev_resolved_addr[uffd] = (unsigned long) faulting_addr;
         uffd_prev_resolved_op[uffd] = faulting_op; 
     }
@@ -220,18 +225,27 @@ int uffdman_register_region(char *addr, unsigned long n_pages)
 
     uffd = syscall(__NR_userfaultfd, O_CLOEXEC | O_NONBLOCK);
     if (uffd == -1)
+    {
+    	err("Error in userfaultfd syscall");
     	return -1;
+    }
 
     uffdio_api.api = UFFD_API;
     uffdio_api.features = 0;
     if (ioctl(uffd, UFFDIO_API, &uffdio_api) == -1)
+    {
+    	err("Error in ioctl UFFDIO_API");
     	return -1;
+    }
 
     uffdio_register.range.start = (unsigned long) addr;
     uffdio_register.range.len = len;
     uffdio_register.mode = UFFDIO_REGISTER_MODE_MISSING;
     if (ioctl(uffd, UFFDIO_REGISTER, &uffdio_register) == -1)
+    {
+    	err("Error in ioctl UFFDIO_REGISTER");
     	return -1;
+    }
 
     /* Create a thread that will process the userfaultfd events */
 
@@ -239,6 +253,7 @@ int uffdman_register_region(char *addr, unsigned long n_pages)
     if (out != 0) 
     {
         errno = thrd_id;
+        err("Error while creating fault handler thread");
         return -1;
     }
 

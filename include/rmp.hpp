@@ -3,7 +3,7 @@
 
 #include "ConnectionConfig.hpp"
 
-void rmp_init(ConnectionConfig);
+int rmp_init(ConnectionConfig);
 char* rmp_alloc(long); 
 void rmp_free(char*);
 

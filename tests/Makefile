@@ -7,3 +7,5 @@ test_srv:
 test_cli:
 	g++ -g -o test_cli -I../include -I../libsrvcli/include $(SRC) test_client.cpp -lpthread
 	
+clean:
+	rm -f test_cli test_srv
