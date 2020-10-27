@@ -5,9 +5,9 @@
 
 using namespace std;
 
-int main(int argc, char** argv)
+int main(int argc, char **argv)
 {
-	if(argc != 3)
+	if (argc != 3)
 	{
 		cout << "Invalid args!" << endl;
 		cout << "Usage: ./test_srv <ip> <port>" << endl;
@@ -18,9 +18,11 @@ int main(int argc, char** argv)
 	cout << config.getIP() << endl;
 	cout << config.getPort() << endl;
 
-	rmp_server_init(config);		
-	
-	while(true);
-	
+	rmp_server_init(config);
+
+	while (true)
+	{
+	}
+
 	return 0;
 }

@@ -19,13 +19,13 @@
 
 #ifndef DEBUG_PRINTS
 #define DEBUG_PRINTS 0
-#endif 
+#endif
 
 #if DEBUG_PRINTS
 #define err(msg) perror(msg)
 #define cout(exp) cout << exp;
 #else
-#define err(msg) 
+#define err(msg)
 #define cout(exp)
 #endif
 
@@ -43,7 +43,7 @@ static unordered_map<long, unsigned long> uffd_start_addr_map;
 static unordered_map<long, unsigned long> uffd_prev_resolved_addr;
 static unordered_map<long, unsigned long> uffd_prev_resolved_op;
 
-static void (*page_resolver) (char* start_addr, char* faulting_addr, int is_write, char* page);
+static void (*page_resolver)(char *start_addr, char *faulting_addr, int is_write, char *page);
 
 /*
 
@@ -66,56 +66,55 @@ static void (*page_resolver) (char* start_addr, char* faulting_addr, int is_writ
 
 */
 
-static void invalidate_prev_resolved_page(long uffd) 
+static void invalidate_prev_resolved_page(long uffd)
 {
-   	unsigned long prev_resolved_addr = uffd_prev_resolved_addr[uffd];
-   	int prev_resolved_op = uffd_prev_resolved_op[uffd];
+    unsigned long prev_resolved_addr = uffd_prev_resolved_addr[uffd];
+    int prev_resolved_op = uffd_prev_resolved_op[uffd];
 
-    char* region_start_addr = (char*) uffd_start_addr_map[uffd];
+    char *region_start_addr = (char *)uffd_start_addr_map[uffd];
 
-    if(prev_resolved_addr && region_start_addr) 
+    if (prev_resolved_addr && region_start_addr)
     {
-       	// Invalidate previous page after resolving it 
-        char* prev_page = (char*) prev_resolved_addr; 
+        // Invalidate previous page after resolving it
+        char *prev_page = (char *)prev_resolved_addr;
 
-		if(prev_resolved_op) // Resolve only if write
-	        page_resolver(region_start_addr, (char*) prev_resolved_addr, prev_resolved_op, prev_page);
+        if (prev_resolved_op) // Resolve only if write
+            page_resolver(region_start_addr, (char *)prev_resolved_addr, prev_resolved_op, prev_page);
 
-        madvise((char*) prev_resolved_addr, PAGE_SIZE, MADV_DONTNEED);
+        madvise((char *)prev_resolved_addr, PAGE_SIZE, MADV_DONTNEED);
     }
 }
 
-static void handle_unmap_event(long uffd) 
+static void handle_unmap_event(long uffd)
 {
-    char* region_start_addr = (char*) uffd_start_addr_map[uffd];
+    char *region_start_addr = (char *)uffd_start_addr_map[uffd];
     uffdman_unregister_region(region_start_addr);
 }
 
-static void* fault_handler_thread(void *arg)
+static void *fault_handler_thread(void *arg)
 {
-    static struct uffd_msg msg;   /* Data read from userfaultfd */
-    static int fault_cnt = 0;     /* Number of faults so far handled */
-    long uffd;                    /* userfaultfd file descriptor */
+    static struct uffd_msg msg; /* Data read from userfaultfd */
+    static int fault_cnt = 0;   /* Number of faults so far handled */
+    long uffd;                  /* userfaultfd file descriptor */
     static char *page = NULL;
     struct uffdio_copy uffdio_copy;
     ssize_t nread;
 
-    uffd = (long) arg;
-
+    uffd = (long)arg;
 
     /* Create a page that will be copied into the faulting region */
 
-    if (page == NULL) 
+    if (page == NULL)
     {
-        page = (char*) mmap(NULL, PAGE_SIZE, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+        page = (char *)mmap(NULL, PAGE_SIZE, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
         if (page == MAP_FAILED)
-        	cout("mmap in userfault handler failed" << endl);
+            cout("mmap in userfault handler failed" << endl);
     }
 
     /* Loop, handling incoming events on the userfaultfd
        file descriptor */
 
-    while(true) 
+    while (true)
     {
         /* See what poll() tells us about the userfaultfd */
 
@@ -125,32 +124,32 @@ static void* fault_handler_thread(void *arg)
         pollfd.events = POLLIN;
         nready = poll(&pollfd, 1, -1);
         if (nready == -1)
-       		break;
+            break;
         cout("\nfault_handler_thread():" << endl);
-        cout("    poll() returns: nready = " << nready << "; POLLIN = " << (int) ((pollfd.revents & POLLIN) != 0) << "; POLLERR = " << (int) ((pollfd.revents & POLLERR) != 0) << endl);
+        cout("    poll() returns: nready = " << nready << "; POLLIN = " << (int)((pollfd.revents & POLLIN) != 0) << "; POLLERR = " << (int)((pollfd.revents & POLLERR) != 0) << endl);
         /* Read an event from the userfaultfd */
 
         nread = read(uffd, &msg, sizeof(msg));
-        if (nread == 0) 
+        if (nread == 0)
         {
             cout("EOF on userfaultfd!" << endl);
             break;
         }
 
         if (nread == -1)
-        	break;
+            break;
 
-		if (msg.event == UFFD_EVENT_UNMAP) 
-		{
-			// TODO: Handle arbitrary unmap event
-			continue;
-		}
+        if (msg.event == UFFD_EVENT_UNMAP)
+        {
+            // TODO: Handle arbitrary unmap event
+            continue;
+        }
         /* We expect only one kind of event; verify that assumption */
-		
-        if (msg.event != UFFD_EVENT_PAGEFAULT) 
+
+        if (msg.event != UFFD_EVENT_PAGEFAULT)
         {
             err("Unexpected event on userfaultfd");
-			break;
+            break;
         }
 
         /* Display info about the page-fault event */
@@ -158,14 +157,14 @@ static void* fault_handler_thread(void *arg)
         cout("flags = " << msg.arg.pagefault.flags << "; address = " << msg.arg.pagefault.address << endl);
         fault_cnt++;
 
-        char* region_start_addr = (char*) uffd_start_addr_map[uffd];
-		char* faulting_addr = (char*) msg.arg.pagefault.address;
-		int faulting_op = msg.arg.pagefault.flags & UFFD_PAGEFAULT_FLAG_WRITE;
-	
-		if(!faulting_op) // Resolve current pauge fault only if read
-        	page_resolver(region_start_addr, faulting_addr, faulting_op, page);
+        char *region_start_addr = (char *)uffd_start_addr_map[uffd];
+        char *faulting_addr = (char *)msg.arg.pagefault.address;
+        int faulting_op = msg.arg.pagefault.flags & UFFD_PAGEFAULT_FLAG_WRITE;
 
-		/* 
+        if (!faulting_op) // Resolve current pauge fault only if read
+            page_resolver(region_start_addr, faulting_addr, faulting_op, page);
+
+        /* 
 			How to handle pagefault due to a write?
 			
 			Example:
@@ -177,48 +176,52 @@ static void* fault_handler_thread(void *arg)
 			fault occurs after resolving a write then invalidate during unregistration.
 
 		*/
-		invalidate_prev_resolved_page(uffd);
-        
+        invalidate_prev_resolved_page(uffd);
+
         /* Copy the page pointed to by 'page' into the faulting
            region. Vary the contents that are copied in, so that it
            is more obvious that each fault is handled separately. */
-        uffdio_copy.src = (unsigned long) page;
+        uffdio_copy.src = (unsigned long)page;
 
         /* We need to handle page faults in units of pages(!).
            So, round faulting address down to page boundary */
 
-        uffdio_copy.dst = (unsigned long) faulting_addr & ~(PAGE_SIZE - 1);
+        uffdio_copy.dst = (unsigned long)faulting_addr & ~(PAGE_SIZE - 1);
         uffdio_copy.len = PAGE_SIZE;
         uffdio_copy.mode = 0;
         uffdio_copy.copy = 0;
         if (ioctl(uffd, UFFDIO_COPY, &uffdio_copy) == -1)
-        	break;
+            break;
         cout("\t(uffdio_copy.copy returned " << uffdio_copy.copy << endl);
-		uffd_prev_resolved_addr[uffd] = (unsigned long) faulting_addr;
-        uffd_prev_resolved_op[uffd] = faulting_op; 
+        uffd_prev_resolved_addr.reserve(1024);
+        uffd_prev_resolved_addr[uffd] = (unsigned long)faulting_addr;
+        uffd_prev_resolved_op.reserve(1024);
+        uffd_prev_resolved_op[uffd] = faulting_op;
     }
 
     return 0;
 }
 
-void uffdman_register_page_resolver(void (*resolver) (char* start_addr, char* faulting_addr, int is_write, char* page)) 
+void uffdman_register_page_resolver(void (*resolver)(char *start_addr, char *faulting_addr, int is_write, char *page))
 {
-	page_resolver = resolver;
+    page_resolver = resolver;
 }
 
-void uffdman_unregister_page_resolver() 
+void uffdman_unregister_page_resolver()
 {
-	page_resolver = NULL;
+    page_resolver = NULL;
 }
 
 int uffdman_register_region(char *addr, unsigned long n_pages)
 {
-    long uffd;          /* userfaultfd file descriptor */
-    unsigned long len;  /* Length of region handled by userfaultfd */
+    printf("uffdman_register_region : 1\n");
+    long uffd;         /* userfaultfd file descriptor */
+    unsigned long len; /* Length of region handled by userfaultfd */
     struct uffdio_api uffdio_api;
     struct uffdio_register uffdio_register;
     pthread_t thrd_id;
-    
+
+    printf("uffdman_register_region : 2\n");
     len = n_pages * PAGE_SIZE;
 
     /* Create and enable userfaultfd object */
@@ -226,63 +229,72 @@ int uffdman_register_region(char *addr, unsigned long n_pages)
     uffd = syscall(__NR_userfaultfd, O_CLOEXEC | O_NONBLOCK);
     if (uffd == -1)
     {
-    	err("Error in userfaultfd syscall");
-    	return -1;
+        err("Error in userfaultfd syscall");
+        return -1;
     }
 
+    printf("uffdman_register_region : 3\n");
     uffdio_api.api = UFFD_API;
     uffdio_api.features = 0;
     if (ioctl(uffd, UFFDIO_API, &uffdio_api) == -1)
     {
-    	err("Error in ioctl UFFDIO_API");
-    	return -1;
+        err("Error in ioctl UFFDIO_API");
+        return -1;
     }
 
-    uffdio_register.range.start = (unsigned long) addr;
+    uffdio_register.range.start = (unsigned long)addr;
     uffdio_register.range.len = len;
     uffdio_register.mode = UFFDIO_REGISTER_MODE_MISSING;
     if (ioctl(uffd, UFFDIO_REGISTER, &uffdio_register) == -1)
     {
-    	err("Error in ioctl UFFDIO_REGISTER");
-    	return -1;
+        err("Error in ioctl UFFDIO_REGISTER");
+        return -1;
     }
 
+    printf("uffdman_register_region : 4\n");
     /* Create a thread that will process the userfaultfd events */
 
-    int out = pthread_create(&thrd_id, NULL, fault_handler_thread, (void *) uffd);
-    if (out != 0) 
+    int out = pthread_create(&thrd_id, NULL, fault_handler_thread, (void *)uffd);
+    if (out != 0)
     {
         errno = thrd_id;
         err("Error while creating fault handler thread");
         return -1;
     }
 
-    addr_tid_map[(unsigned long) addr] = thrd_id;
-	start_addr_uffd_map[(unsigned long) addr] = uffd;
-	uffd_start_addr_map[uffd] = (unsigned long) addr;
-
-	return 0;
+    printf("uffdman_register_region : 5\n");
+    printf("uffdman_register_region : %lx,  %lu, %lu\n", addr, (unsigned long)addr, addr_tid_map.size());
+    addr_tid_map.reserve(1024);
+    addr_tid_map.insert({(unsigned long)addr, thrd_id});
+    printf("uffdman_register_region : 6\n");
+    start_addr_uffd_map.reserve(1024);
+    start_addr_uffd_map.insert({(unsigned long)addr, uffd});
+    printf("uffdman_register_region : 7\n");
+    uffd_start_addr_map.reserve(1024);
+    uffd_start_addr_map.insert({uffd, (unsigned long)addr});
+    printf("uffdman_register_region : 8\n");
+    return 0;
 }
 
-void uffdman_unregister_region(char* addr) 
+void uffdman_unregister_region(char *addr)
 {
-	unsigned long ul_addr = (unsigned long) addr;
-	long uffd = start_addr_uffd_map[ul_addr];
-	if(uffd) 
-	{
-		invalidate_prev_resolved_page(uffd);
+    unsigned long ul_addr = (unsigned long)addr;
+    long uffd = start_addr_uffd_map[ul_addr];
+    if (uffd)
+    {
+        invalidate_prev_resolved_page(uffd);
 
-		start_addr_uffd_map.erase(ul_addr);
-		uffd_start_addr_map.erase(uffd);
+        start_addr_uffd_map.erase(ul_addr);
+        uffd_start_addr_map.erase(uffd);
 
-		uffd_prev_resolved_addr.erase(uffd);
-		uffd_prev_resolved_op.erase(uffd);
+        uffd_prev_resolved_addr.erase(uffd);
+        uffd_prev_resolved_op.erase(uffd);
 
-		pthread_t tid = addr_tid_map[ul_addr];
-		if(tid) 
-		{
-			addr_tid_map.erase(tid);
-			pthread_cancel(tid);
-		}
-	}
+        pthread_t tid = addr_tid_map[ul_addr];
+        if (tid)
+        {
+            addr_tid_map.erase(tid);
+            pthread_cancel(tid);
+        }
+    }
 }
