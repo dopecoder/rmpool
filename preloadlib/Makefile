@@ -4,7 +4,7 @@ SRC=../libsrvcli/*.cpp ../uffdman/*.cpp ../rmp/*.cpp
 all: preloadlib
 	
 preloadlib:
-	g++ -g -I../include -I../libsrvcli/include $(SRC) -shared -fPIC -o preloadlib.so preloadlib.cpp -ldl -lpthread 
+	g++ -g -I../include -I../libsrvcli/include $(SRC) -shared -fPIC -o preloadlib.so preloadlib.cpp -ldl -lpthread
 	
 clean:
 	rm -f preloadlib.so

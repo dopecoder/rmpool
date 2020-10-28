@@ -31,13 +31,11 @@
    - Guests can have proxy server objects
  */
 
-// extern void print(const char *);
-
 using namespace std;
 
 // static ConnectionConfig server_conf;
-static unordered_map<ul, rmp_handle> addr_hndl_map;
-static unordered_map<ul, ul> addr_npages_map;
+static unordered_map<ul, rmp_handle> *addr_hndl_map;
+static unordered_map<ul, ul> *addr_npages_map;
 
 Client *cli;
 int sockfd = -1;
@@ -116,7 +114,7 @@ static ul rmp_read_page(rmp_handle hd, ul offset)
 void rmp_pagefault_resovler(char *start_addr, char *faulting_addr, int is_write, char *page)
 {
 	ul offset = (((ul)faulting_addr & ~(PAGE_SIZE - 1)) - (ul)start_addr);
-	rmp_handle hndl = addr_hndl_map[(ul)start_addr];
+	rmp_handle hndl = addr_hndl_map->at((ul)start_addr);
 	if (is_write)
 	{
 		rmp_write_page(hndl, offset, (ul)*page);
@@ -142,6 +140,11 @@ int rmp_init(ConnectionConfig conf)
 	}
 	cout("Client Started" << endl);
 	uffdman_register_page_resolver(&rmp_pagefault_resovler);
+
+	// Initialize the maps
+	addr_hndl_map = new unordered_map<ul, rmp_handle>();
+	addr_npages_map = new unordered_map<ul, ul>();
+
 	return 0;
 }
 
@@ -179,20 +182,15 @@ char *rmp_alloc(long n_pages)
 	printf("9\n");
 	uffdman_register_region(new_addr, n_pages);
 
-	printf("10\n");
-	addr_hndl_map.reserve(1024);
-	addr_hndl_map[ul_addr] = srv_handle;
-	printf("11\n");
-	addr_npages_map.reserve(1024);
-	addr_npages_map[ul_addr] = n_pages;
+	addr_hndl_map->insert({ul_addr, srv_handle});
+	addr_npages_map->insert({ul_addr, n_pages});
 	printf("12\n");
-
 	return new_addr;
 }
 
 void rmp_free(char *addr)
 {
-	rmp_handle hndl = addr_hndl_map[(ul)addr];
+	rmp_handle hndl = addr_hndl_map->at((ul)addr);
 
 	// send free request for hndl to server
 	srv_handle = hndl;
@@ -200,11 +198,17 @@ void rmp_free(char *addr)
 	uffdman_unregister_region(addr);
 
 	// free the invalid address that is stored in the table
-	if (munmap(addr, addr_npages_map[(ul)addr] * PAGE_SIZE) == -1)
+	if (munmap(addr, addr_npages_map->at((ul)addr) * PAGE_SIZE) == -1)
 		err("Erro while freeing memory on client");
 
 	// remove stored references of address and size
-	addr_hndl_map.erase((ul)addr);
-	addr_npages_map.erase((ul)addr);
+	addr_hndl_map->erase((ul)addr);
+	addr_npages_map->erase((ul)addr);
 	srv_free_pages(sockfd);
+}
+
+void rmp_destroy()
+{
+	delete addr_hndl_map;
+	delete addr_npages_map;
 }

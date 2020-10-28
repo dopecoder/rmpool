@@ -177,15 +177,15 @@ void *malloc(size_t size)
     {
         //call rmp_alloc
         print("preloadlib.so: (malloc) remote allocation\n");
-
         alloc_local = 1;
         long npages = ceil((float)size / (float)PAGE_SIZE);
-        printf("DIV : %u\n", npages);
+        printf("DIV : %ld\n", npages);
         printf("Size : %ld, PAGE SIZE : %ld\n", size, PAGE_SIZE);
         // print("preloadlib.so: (malloc) Allocating %ud pages\n", npages);
         result = (void *)rmp_alloc(npages);
+        // printf("Addr : %lx\n", result);
         print("preloadlib.so: (malloc) remote allocation finished\n");
-        // alloc_local = 0;
+        alloc_local = 0;
     }
     // else
     // {

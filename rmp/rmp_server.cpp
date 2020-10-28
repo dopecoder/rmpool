@@ -129,7 +129,12 @@ void on_client_connected(int sockfd)
 	while (!disconnect)
 	{
 		enum rmp_req_type req_type;
-		recv(sockfd, &req_type, sizeof(enum rmp_req_type), 0);
+		size_t bytes_recieved = recv(sockfd, &req_type, sizeof(enum rmp_req_type), 0);
+		if (bytes_recieved == 0)
+		{
+			disconnect = true;
+		}
+
 		cout("Received request type: " << req_type << endl);
 
 		switch (req_type)

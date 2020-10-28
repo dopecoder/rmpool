@@ -23,27 +23,46 @@
 
 #if DEBUG_PRINTS
 #define err(msg) perror(msg)
-#define cout(exp) cout << exp;
+#define cout(exp...) printf(exp);
 #else
 #define err(msg)
-#define cout(exp)
+#define cout(exp...)
 #endif
 
 #define PAGE_SIZE sysconf(_SC_PAGE_SIZE)
 
 using namespace std;
 
-static unordered_map<unsigned long, pthread_t> addr_tid_map;
+static unordered_map<unsigned long, pthread_t> *addr_tid_map;
 
 // Double sided maps for starting address of a region to uffd
-static unordered_map<unsigned long, long> start_addr_uffd_map;
-static unordered_map<long, unsigned long> uffd_start_addr_map;
+static unordered_map<unsigned long, long> *start_addr_uffd_map;
+static unordered_map<long, unsigned long> *uffd_start_addr_map;
 
 // Maps to maintain prev resolved pages for lazy page resolving
-static unordered_map<long, unsigned long> uffd_prev_resolved_addr;
-static unordered_map<long, unsigned long> uffd_prev_resolved_op;
+static unordered_map<long, unsigned long> *uffd_prev_resolved_addr;
+static unordered_map<long, unsigned long> *uffd_prev_resolved_op;
 
 static void (*page_resolver)(char *start_addr, char *faulting_addr, int is_write, char *page);
+
+void uffdman_init()
+{
+
+    uffd_prev_resolved_addr = new unordered_map<long, unsigned long>();
+    uffd_prev_resolved_op = new unordered_map<long, unsigned long>();
+    addr_tid_map = new unordered_map<unsigned long, pthread_t>();
+    start_addr_uffd_map = new unordered_map<unsigned long, long>();
+    uffd_start_addr_map = new unordered_map<long, unsigned long>();
+}
+
+void uffdman_destroy()
+{
+    delete addr_tid_map;
+    delete start_addr_uffd_map;
+    delete uffd_start_addr_map;
+    delete uffd_prev_resolved_addr;
+    delete uffd_prev_resolved_op;
+}
 
 /*
 
@@ -68,10 +87,10 @@ static void (*page_resolver)(char *start_addr, char *faulting_addr, int is_write
 
 static void invalidate_prev_resolved_page(long uffd)
 {
-    unsigned long prev_resolved_addr = uffd_prev_resolved_addr[uffd];
-    int prev_resolved_op = uffd_prev_resolved_op[uffd];
+    unsigned long prev_resolved_addr = uffd_prev_resolved_addr->at(uffd);
+    int prev_resolved_op = uffd_prev_resolved_op->at(uffd);
 
-    char *region_start_addr = (char *)uffd_start_addr_map[uffd];
+    char *region_start_addr = (char *)uffd_start_addr_map->at(uffd);
 
     if (prev_resolved_addr && region_start_addr)
     {
@@ -87,15 +106,15 @@ static void invalidate_prev_resolved_page(long uffd)
 
 static void handle_unmap_event(long uffd)
 {
-    char *region_start_addr = (char *)uffd_start_addr_map[uffd];
+    char *region_start_addr = (char *)uffd_start_addr_map->at(uffd);
     uffdman_unregister_region(region_start_addr);
 }
 
 static void *fault_handler_thread(void *arg)
 {
-    static struct uffd_msg msg; /* Data read from userfaultfd */
-    static int fault_cnt = 0;   /* Number of faults so far handled */
-    long uffd;                  /* userfaultfd file descriptor */
+    cout("FAULT HANDLER STARTED\n") static struct uffd_msg msg; /* Data read from userfaultfd */
+    static int fault_cnt = 0;                                   /* Number of faults so far handled */
+    long uffd;                                                  /* userfaultfd file descriptor */
     static char *page = NULL;
     struct uffdio_copy uffdio_copy;
     ssize_t nread;
@@ -108,7 +127,7 @@ static void *fault_handler_thread(void *arg)
     {
         page = (char *)mmap(NULL, PAGE_SIZE, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
         if (page == MAP_FAILED)
-            cout("mmap in userfault handler failed" << endl);
+            cout("mmap in userfault handler failed\n");
     }
 
     /* Loop, handling incoming events on the userfaultfd
@@ -125,14 +144,14 @@ static void *fault_handler_thread(void *arg)
         nready = poll(&pollfd, 1, -1);
         if (nready == -1)
             break;
-        cout("\nfault_handler_thread():" << endl);
-        cout("    poll() returns: nready = " << nready << "; POLLIN = " << (int)((pollfd.revents & POLLIN) != 0) << "; POLLERR = " << (int)((pollfd.revents & POLLERR) != 0) << endl);
+        cout("\nfault_handler_thread():\n");
+        cout("    poll() returns: nready = %d; POLLIN = %d; POLLERR = ", nready, (int)((pollfd.revents & POLLIN) != 0), (int)((pollfd.revents & POLLERR) != 0));
         /* Read an event from the userfaultfd */
 
         nread = read(uffd, &msg, sizeof(msg));
         if (nread == 0)
         {
-            cout("EOF on userfaultfd!" << endl);
+            cout("EOF on userfaultfd!\n");
             break;
         }
 
@@ -154,10 +173,10 @@ static void *fault_handler_thread(void *arg)
 
         /* Display info about the page-fault event */
         cout("\tUFFD_EVENT_PAGEFAULT event: ");
-        cout("flags = " << msg.arg.pagefault.flags << "; address = " << msg.arg.pagefault.address << endl);
+        cout("flags = %lld; address = %lld\n", msg.arg.pagefault.flags, msg.arg.pagefault.address);
         fault_cnt++;
 
-        char *region_start_addr = (char *)uffd_start_addr_map[uffd];
+        char *region_start_addr = (char *)uffd_start_addr_map->at(uffd);
         char *faulting_addr = (char *)msg.arg.pagefault.address;
         int faulting_op = msg.arg.pagefault.flags & UFFD_PAGEFAULT_FLAG_WRITE;
 
@@ -192,11 +211,11 @@ static void *fault_handler_thread(void *arg)
         uffdio_copy.copy = 0;
         if (ioctl(uffd, UFFDIO_COPY, &uffdio_copy) == -1)
             break;
-        cout("\t(uffdio_copy.copy returned " << uffdio_copy.copy << endl);
-        uffd_prev_resolved_addr.reserve(1024);
-        uffd_prev_resolved_addr[uffd] = (unsigned long)faulting_addr;
-        uffd_prev_resolved_op.reserve(1024);
-        uffd_prev_resolved_op[uffd] = faulting_op;
+        cout("\t(uffdio_copy.copy returned %lld\n", uffdio_copy.copy);
+        // uffd_prev_resolved_addr.reserve(1024);
+        uffd_prev_resolved_addr->insert({uffd, (unsigned long)faulting_addr});
+        // uffd_prev_resolved_op.reserve(1024);
+        uffd_prev_resolved_op->insert({uffd, faulting_op});
     }
 
     return 0;
@@ -233,7 +252,6 @@ int uffdman_register_region(char *addr, unsigned long n_pages)
         return -1;
     }
 
-    printf("uffdman_register_region : 3\n");
     uffdio_api.api = UFFD_API;
     uffdio_api.features = 0;
     if (ioctl(uffd, UFFDIO_API, &uffdio_api) == -1)
@@ -251,7 +269,6 @@ int uffdman_register_region(char *addr, unsigned long n_pages)
         return -1;
     }
 
-    printf("uffdman_register_region : 4\n");
     /* Create a thread that will process the userfaultfd events */
 
     int out = pthread_create(&thrd_id, NULL, fault_handler_thread, (void *)uffd);
@@ -262,38 +279,33 @@ int uffdman_register_region(char *addr, unsigned long n_pages)
         return -1;
     }
 
-    printf("uffdman_register_region : 5\n");
-    printf("uffdman_register_region : %lx,  %lu, %lu\n", addr, (unsigned long)addr, addr_tid_map.size());
-    addr_tid_map.reserve(1024);
-    addr_tid_map.insert({(unsigned long)addr, thrd_id});
-    printf("uffdman_register_region : 6\n");
-    start_addr_uffd_map.reserve(1024);
-    start_addr_uffd_map.insert({(unsigned long)addr, uffd});
-    printf("uffdman_register_region : 7\n");
-    uffd_start_addr_map.reserve(1024);
-    uffd_start_addr_map.insert({uffd, (unsigned long)addr});
-    printf("uffdman_register_region : 8\n");
+    // Initialize the maps
+    uffdman_init();
+
+    addr_tid_map->insert({(unsigned long)addr, thrd_id});
+    start_addr_uffd_map->insert({(unsigned long)addr, uffd});
+    uffd_start_addr_map->insert({uffd, (unsigned long)addr});
     return 0;
 }
 
 void uffdman_unregister_region(char *addr)
 {
     unsigned long ul_addr = (unsigned long)addr;
-    long uffd = start_addr_uffd_map[ul_addr];
+    long uffd = start_addr_uffd_map->at(ul_addr);
     if (uffd)
     {
         invalidate_prev_resolved_page(uffd);
 
-        start_addr_uffd_map.erase(ul_addr);
-        uffd_start_addr_map.erase(uffd);
+        start_addr_uffd_map->erase(ul_addr);
+        uffd_start_addr_map->erase(uffd);
 
-        uffd_prev_resolved_addr.erase(uffd);
-        uffd_prev_resolved_op.erase(uffd);
+        uffd_prev_resolved_addr->erase(uffd);
+        uffd_prev_resolved_op->erase(uffd);
 
-        pthread_t tid = addr_tid_map[ul_addr];
+        pthread_t tid = addr_tid_map->at(ul_addr);
         if (tid)
         {
-            addr_tid_map.erase(tid);
+            addr_tid_map->erase(tid);
             pthread_cancel(tid);
         }
     }
