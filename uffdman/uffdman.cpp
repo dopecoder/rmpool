@@ -85,15 +85,36 @@ void uffdman_destroy()
 
 */
 
+template <class Key,
+          class T,
+          class Hash,
+          class Pred,
+          class Alloc>
+// template <class K>
+static bool exists(std::unordered_map<Key, T, Hash, Pred, Alloc> &m, Key key)
+{
+    auto got = m.find(key);
+
+    if (got == m.end())
+        return false;
+    return true;
+}
+
 static void invalidate_prev_resolved_page(long uffd)
 {
-    unsigned long prev_resolved_addr = uffd_prev_resolved_addr->at(uffd);
-    int prev_resolved_op = uffd_prev_resolved_op->at(uffd);
+    auto prev_resolved_addr_exists = uffd_prev_resolved_addr->find(uffd);
+    auto prev_resolved_op_exists = uffd_prev_resolved_op->find(uffd);
+    auto region_start_addr_exists = uffd_start_addr_map->find(uffd);
 
-    char *region_start_addr = (char *)uffd_start_addr_map->at(uffd);
-
-    if (prev_resolved_addr && region_start_addr)
+    if (prev_resolved_addr_exists != uffd_prev_resolved_addr->end() &&
+        prev_resolved_op_exists != uffd_prev_resolved_op->end() &&
+        region_start_addr_exists != uffd_start_addr_map->end())
     {
+
+        unsigned long prev_resolved_addr = uffd_prev_resolved_addr->at(uffd);
+        int prev_resolved_op = uffd_prev_resolved_op->at(uffd);
+        char *region_start_addr = (char *)uffd_start_addr_map->at(uffd);
+
         // Invalidate previous page after resolving it
         char *prev_page = (char *)prev_resolved_addr;
 
@@ -233,14 +254,12 @@ void uffdman_unregister_page_resolver()
 
 int uffdman_register_region(char *addr, unsigned long n_pages)
 {
-    printf("uffdman_register_region : 1\n");
     long uffd;         /* userfaultfd file descriptor */
     unsigned long len; /* Length of region handled by userfaultfd */
     struct uffdio_api uffdio_api;
     struct uffdio_register uffdio_register;
     pthread_t thrd_id;
 
-    printf("uffdman_register_region : 2\n");
     len = n_pages * PAGE_SIZE;
 
     /* Create and enable userfaultfd object */

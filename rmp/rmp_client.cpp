@@ -127,18 +127,13 @@ void rmp_pagefault_resovler(char *start_addr, char *faulting_addr, int is_write,
 
 int rmp_init(ConnectionConfig conf)
 {
-	printf("RMP_INIT\n");
-	// server_conf = conf;
-	cout("Before New Client" << endl);
 	cli = new Client(conf);
-	cout("After New Client" << endl);
 	sockfd = cli->connectToServer();
 	if (sockfd == -1)
 	{
 		err("Error while establishing connection to server");
 		return -1;
 	}
-	cout("Client Started" << endl);
 	uffdman_register_page_resolver(&rmp_pagefault_resovler);
 
 	// Initialize the maps
@@ -150,41 +145,31 @@ int rmp_init(ConnectionConfig conf)
 
 char *rmp_alloc(long n_pages)
 {
-	printf("1\n");
 	long size = n_pages * PAGE_SIZE;
-	printf("2\n");
 	char *new_addr = (char *)mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-	printf("3\n");
 
 	if (new_addr == MAP_FAILED)
 	{
-		printf("13\n");
 		err("Error while allocating memory on client");
 		return (char *)MAP_FAILED;
 	}
-	printf("5\n");
 
 	ul ul_addr = (ul)new_addr;
 
-	printf("6\n");
 	// request for new allocation of n_pages
 	srv_n_pages = n_pages;
-	printf("7\n");
 	srv_alloc_pages(sockfd);
-	printf("8\n");
 	if (srv_handle == -1)
 	{
-		printf("14\n");
 		err("Error while allocating memory on server");
 		return (char *)MAP_FAILED;
 	}
 
-	printf("9\n");
 	uffdman_register_region(new_addr, n_pages);
 
 	addr_hndl_map->insert({ul_addr, srv_handle});
 	addr_npages_map->insert({ul_addr, n_pages});
-	printf("12\n");
+
 	return new_addr;
 }
 

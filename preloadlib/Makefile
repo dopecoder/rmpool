@@ -1,10 +1,20 @@
 SRC=../libsrvcli/*.cpp ../uffdman/*.cpp ../rmp/*.cpp
 # SRC=../rmp.so
 
-all: preloadlib
+all: preloadlib preload-tests
 	
-preloadlib:
-	g++ -g -I../include -I../libsrvcli/include $(SRC) -shared -fPIC -o preloadlib.so preloadlib.cpp -ldl -lpthread
+preloadlib: mkdir
+	g++ -g -I../include -I../libsrvcli/include $(SRC) -shared -fPIC -o ./bin/preloadlib.so preloadlib.cpp -ldl -lpthread
+
+preload-tests:
+	$(MAKE) -C tests/ all
+
+mkdir:
+	mkdir -p bin
 	
-clean:
-	rm -f preloadlib.so
+clean: clean-tests
+	rm -rf bin
+
+clean-tests:
+	$(MAKE) -C tests/ clean
+
