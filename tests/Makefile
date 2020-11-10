@@ -12,4 +12,4 @@ mkdir:
 	mkdir -p bin
 
 clean:
-	rm -f bin
+	rm -rf bin

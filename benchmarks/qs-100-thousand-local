@@ -1,0 +1,9 @@
+
+ Array size: 100000
+ Filling the array with sorted numbers... Done!
+ >> Running sort on randomly generated numbers.
+ TIME ELAPSED: 13.216379 seconds
+
+ Filling the array with sorted numbers... Done!
+ >> Running sort on sequential numbers.
+ TIME ELAPSED: 13.143430 seconds

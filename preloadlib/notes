@@ -1,0 +1,15 @@
+invalidate_prev_resolved_page
+fault_handler_thread
+uffdman_unregister_region
+
+set exec-wrapper env 'LD_PRELOAD=./bin/preloadlib.so'
+file ./a.out
+
+
+
+1. quicksort
+2. matrix multiplication
+3. convert img.jpg rose.png
+4. sysbench --test=memory --memory-block-size=1M --memory-total-size=100G --num-threads=1 run
+
+All of these for local and remote allocation

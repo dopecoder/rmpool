@@ -25,10 +25,10 @@ int main(int argc, char *argv[])
         malloc_ptrs[i] = realloc(malloc_ptrs[i], 20000 * i);
     }
 
-    // for (i = 0; i < limit; ++i)
-    // {
-    //     free(malloc_ptrs[i]);
-    // }
+    for (i = 0; i < limit; ++i)
+    {
+        free(malloc_ptrs[i]);
+    }
     printf("%s\n", "realloc_test: (main) success, exiting");
     return 0;
 }

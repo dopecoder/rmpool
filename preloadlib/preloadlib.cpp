@@ -4,12 +4,21 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
+#include <stdarg.h>
 #include <math.h>
 #include <stdlib.h>
 #include <dlfcn.h>
 #include <sys/mman.h>
 
 #include "rmp.hpp"
+
+// #if DEBUG_PRINTS
+// #define err(msg) perror(msg)
+// #define cout(exp) cout << exp;
+// #else
+// #define err(msg)
+// #define cout(exp)
+// #endif
 
 #define PAGE_SIZE sysconf(_SC_PAGE_SIZE)
 
@@ -25,9 +34,18 @@ int rmp_fd = -1;
 
 void print(const char *str)
 {
-    // const char msg[] = "preloadlib.so: (malloc) called\n";
-    write(STDOUT_FILENO, str, strlen(str));
+    // #if DEBUG_PRINTS
+    // write(STDOUT_FILENO, str, strlen(str));
+    // #endif
 }
+
+// void myprintf(const char *__restrict__ __format, ...)
+// {
+//     va_list argptr;
+//     va_start(argptr, __format);
+//     vfprintf(stderr, __format, argptr);
+//     va_end(argptr);
+// }
 
 // Initialize the rmp connection to server and get a fd
 static void rmp_conn_init(void)
@@ -103,13 +121,21 @@ static int check_conn(void)
 void free(void *ptr)
 {
     print("preloadlib.so: (free) called\n");
-    // if (check_conn())
+    // if (do_local_allocation == 1)
     // {
-    // do_local_allocation = 1;
-    // rmp_free((char *)ptr);
-    // do_local_allocation = 0;
+    //     print("Local free\n");
+    //     // stdlib_free(ptr);
     // }
-    stdlib_free(ptr);
+    // else
+    // {
+    //     if (check_conn())
+    //     {
+    //         print("Remote free\n");
+    //         do_local_allocation = 1;
+    //         rmp_free((char *)ptr);
+    //         do_local_allocation = 0;
+    //     }
+    // }
     print("preloadlib.so: (free) exiting\n");
 }
 
@@ -134,11 +160,12 @@ void *malloc(size_t size)
 
     if (check_conn())
     {
+
         //call rmp_alloc
         print("preloadlib.so: (malloc) remote allocation\n");
         do_local_allocation = 1;
         long npages = ceil((float)size / (float)PAGE_SIZE);
-        printf("Size : %ld, PAGE SIZE : %ld, Pages : %ld\n", size, PAGE_SIZE, npages);
+        // printf("Size : %ld, PAGE SIZE : %ld, Pages : %ld\n", size, PAGE_SIZE, npages);
         result = (void *)rmp_alloc(npages);
         print("preloadlib.so: (malloc) remote allocation finished\n");
         do_local_allocation = 0;

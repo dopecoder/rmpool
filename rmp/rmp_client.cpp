@@ -3,6 +3,7 @@
 #include <sys/socket.h>
 #include <sys/mman.h>
 #include <unistd.h>
+#include <string.h>
 #include <iostream>
 
 #include "rmp.hpp"
@@ -44,6 +45,7 @@ static ul srv_n_pages;
 static rmp_handle srv_handle;
 static ul srv_page, srv_offset;
 static enum rmp_req_type req_type;
+
 static void srv_alloc_pages(int sockfd)
 {
 	req_type = ALLOC_PAGES;
@@ -51,7 +53,6 @@ static void srv_alloc_pages(int sockfd)
 	cout("Sending request type: " << req_type << endl);
 	send(sockfd, &srv_n_pages, sizeof(ul), 0);
 	cout("Sending no. of pages: " << srv_n_pages << endl);
-
 	recv(sockfd, &srv_handle, sizeof(rmp_handle), 0);
 	cout("Received server handle: " << srv_handle << endl);
 }
@@ -61,7 +62,6 @@ static void srv_read_page(int sockfd)
 	req_type = READ_PAGE;
 	send(sockfd, &req_type, sizeof(enum rmp_req_type), 0);
 	cout("Sending request type: " << req_type << endl);
-
 	send(sockfd, &srv_handle, sizeof(rmp_handle), 0);
 	cout("Sending server handle: " << srv_handle << endl);
 	send(sockfd, &srv_offset, sizeof(ul), 0);
@@ -75,7 +75,6 @@ static void srv_write_page(int sockfd)
 	req_type = WRITE_PAGE;
 	send(sockfd, &req_type, sizeof(enum rmp_req_type), 0);
 	cout("Sending request type: " << req_type << endl);
-
 	send(sockfd, &srv_handle, sizeof(rmp_handle), 0);
 	cout("Sending server handle: " << srv_handle << endl);
 	send(sockfd, &srv_offset, sizeof(ul), 0);
@@ -89,7 +88,6 @@ static void srv_free_pages(int sockfd)
 	req_type = FREE_PAGES;
 	send(sockfd, &req_type, sizeof(enum rmp_req_type), 0);
 	cout("Sending request type: " << req_type << endl);
-
 	send(sockfd, &srv_handle, sizeof(rmp_handle), 0);
 	cout("Sending server handle: " << srv_handle << endl);
 }
@@ -115,6 +113,9 @@ void rmp_pagefault_resovler(char *start_addr, char *faulting_addr, int is_write,
 {
 	ul offset = (((ul)faulting_addr & ~(PAGE_SIZE - 1)) - (ul)start_addr);
 	rmp_handle hndl = addr_hndl_map->at((ul)start_addr);
+	// char *str = "INSIDE rmp_pagefault_resovler\n";
+	// write(STDOUT_FILENO, str, strlen(str));
+	// printf("Faulting address : %lx, is-write : %d\n", faulting_addr, is_write);
 	if (is_write)
 	{
 		rmp_write_page(hndl, offset, (ul)*page);
@@ -175,21 +176,33 @@ char *rmp_alloc(long n_pages)
 
 void rmp_free(char *addr)
 {
-	rmp_handle hndl = addr_hndl_map->at((ul)addr);
+	auto exists = addr_hndl_map->find((ul)addr);
+	printf("RMP FREE called\n");
 
-	// send free request for hndl to server
-	srv_handle = hndl;
+	if (exists != addr_hndl_map->end())
+	{
+		rmp_handle hndl = addr_hndl_map->at((ul)addr);
 
-	uffdman_unregister_region(addr);
+		// send free request for hndl to server
+		srv_handle = hndl;
 
-	// free the invalid address that is stored in the table
-	if (munmap(addr, addr_npages_map->at((ul)addr) * PAGE_SIZE) == -1)
-		err("Erro while freeing memory on client");
+		uffdman_unregister_region(addr);
 
-	// remove stored references of address and size
-	addr_hndl_map->erase((ul)addr);
-	addr_npages_map->erase((ul)addr);
-	srv_free_pages(sockfd);
+		auto addr_npages_exists = addr_npages_map->find((ul)addr);
+		if (addr_npages_exists != addr_npages_map->end())
+		{
+			// free the invalid address that is stored in the table
+			if (munmap(addr, addr_npages_map->at((ul)addr) * PAGE_SIZE) == -1)
+				err("Erro while freeing memory on client");
+
+			// remove stored references of address and size
+			addr_npages_map->erase((ul)addr);
+		}
+		addr_hndl_map->erase((ul)addr);
+		printf("Calling srv_free_pages\n");
+		srv_free_pages(sockfd);
+	}
+	printf("RMP FREE exiting\n");
 }
 
 void rmp_destroy()

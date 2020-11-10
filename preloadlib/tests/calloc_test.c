@@ -21,10 +21,10 @@ int main(int argc, char *argv[])
         calloc_ptrs[i] = calloc(10000 * i, sizeof(char));
     }
 
-    // for (i = 0; i < limit; ++i)
-    // {
-    //     free(calloc_ptrs[i]);
-    // }
+    for (i = 0; i < limit; ++i)
+    {
+        free(calloc_ptrs[i]);
+    }
     printf("%s\n", "calloc_test: (main) success, exiting");
     return 0;
 }

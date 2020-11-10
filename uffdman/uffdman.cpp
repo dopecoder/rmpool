@@ -85,20 +85,20 @@ void uffdman_destroy()
 
 */
 
-template <class Key,
-          class T,
-          class Hash,
-          class Pred,
-          class Alloc>
-// template <class K>
-static bool exists(std::unordered_map<Key, T, Hash, Pred, Alloc> &m, Key key)
-{
-    auto got = m.find(key);
+// template <class Key,
+//           class T,
+//           class Hash,
+//           class Pred,
+//           class Alloc>
+// // template <class K>
+// static bool exists(std::unordered_map<Key, T, Hash, Pred, Alloc> &m, Key key)
+// {
+//     auto got = m.find(key);
 
-    if (got == m.end())
-        return false;
-    return true;
-}
+//     if (got == m.end())
+//         return false;
+//     return true;
+// }
 
 static void invalidate_prev_resolved_page(long uffd)
 {
@@ -197,12 +197,15 @@ static void *fault_handler_thread(void *arg)
         cout("flags = %lld; address = %lld\n", msg.arg.pagefault.flags, msg.arg.pagefault.address);
         fault_cnt++;
 
-        char *region_start_addr = (char *)uffd_start_addr_map->at(uffd);
         char *faulting_addr = (char *)msg.arg.pagefault.address;
         int faulting_op = msg.arg.pagefault.flags & UFFD_PAGEFAULT_FLAG_WRITE;
 
-        if (!faulting_op) // Resolve current pauge fault only if read
+        if (!faulting_op)
+        { // Resolve current pauge fault only if read
+
+            char *region_start_addr = (char *)uffd_start_addr_map->at(uffd);
             page_resolver(region_start_addr, faulting_addr, faulting_op, page);
+        }
 
         /* 
 			How to handle pagefault due to a write?
@@ -310,9 +313,10 @@ int uffdman_register_region(char *addr, unsigned long n_pages)
 void uffdman_unregister_region(char *addr)
 {
     unsigned long ul_addr = (unsigned long)addr;
-    long uffd = start_addr_uffd_map->at(ul_addr);
-    if (uffd)
+    auto start_addr_uffd_exists = start_addr_uffd_map->find(ul_addr);
+    if (start_addr_uffd_exists != start_addr_uffd_map->end())
     {
+        long uffd = start_addr_uffd_map->at(ul_addr);
         invalidate_prev_resolved_page(uffd);
 
         start_addr_uffd_map->erase(ul_addr);
@@ -321,9 +325,10 @@ void uffdman_unregister_region(char *addr)
         uffd_prev_resolved_addr->erase(uffd);
         uffd_prev_resolved_op->erase(uffd);
 
-        pthread_t tid = addr_tid_map->at(ul_addr);
-        if (tid)
+        auto addr_tid_exists = addr_tid_map->find(ul_addr);
+        if (addr_tid_exists != addr_tid_map->end())
         {
+            pthread_t tid = addr_tid_map->at(ul_addr);
             addr_tid_map->erase(tid);
             pthread_cancel(tid);
         }
