@@ -4,6 +4,7 @@
 #include <sys/mman.h>
 #include <unistd.h>
 #include <string.h>
+#include <inttypes.h>
 #include <iostream>
 
 #include "rmp.hpp"
@@ -92,37 +93,41 @@ static void srv_free_pages(int sockfd)
 	cout("Sending server handle: " << srv_handle << endl);
 }
 
-static void rmp_write_page(rmp_handle hd, ul offset, ul page)
+static void rmp_write_page(rmp_handle hd, ul offset, void *page)
 {
 	// send page to server with write request
-	srv_handle = hd;
-	srv_offset = offset;
-	srv_page = page;
-	srv_write_page(sockfd);
+	// srv_handle = hd;
+	// srv_offset = offset;
+	// srv_page = page;
+	// srv_write_page(sockfd);
 }
 
-static ul rmp_read_page(rmp_handle hd, ul offset)
+static ul rmp_read_page(rmp_handle hd, ul offset, void *page)
 {
-	srv_handle = hd;
-	srv_offset = offset;
-	srv_read_page(sockfd);
-	return srv_page;
+	// srv_handle = hd;
+	// srv_offset = offset;
+	// srv_read_page(sockfd);
+	// return srv_page;
+	memset(page, 1, 4096);
 }
 
-void rmp_pagefault_resovler(char *start_addr, char *faulting_addr, int is_write, char *page)
+void rmp_pagefault_resovler(void *start_addr, void *faulting_addr, int is_write, void *page)
 {
 	ul offset = (((ul)faulting_addr & ~(PAGE_SIZE - 1)) - (ul)start_addr);
 	rmp_handle hndl = addr_hndl_map->at((ul)start_addr);
 	// char *str = "INSIDE rmp_pagefault_resovler\n";
 	// write(STDOUT_FILENO, str, strlen(str));
-	// printf("Faulting address : %lx, is-write : %d\n", faulting_addr, is_write);
+	printf("rmp_pagefault_resovler:  ");
+	printf("Offset = %ld; ", offset);
+	printf("Start Address = %" PRIx64 "; ", start_addr);
+	printf("Faulting Address = %" PRIx64 "\n", faulting_addr);
 	if (is_write)
 	{
-		rmp_write_page(hndl, offset, (ul)*page);
+		rmp_write_page(hndl, offset, page);
 	}
 	else
 	{
-		*page = rmp_read_page(hndl, offset);
+		rmp_read_page(hndl, offset, page);
 	}
 }
 
@@ -144,10 +149,10 @@ int rmp_init(ConnectionConfig conf)
 	return 0;
 }
 
-char *rmp_alloc(long n_pages)
+void *rmp_alloc(long n_pages)
 {
 	long size = n_pages * PAGE_SIZE;
-	char *new_addr = (char *)mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+	void *new_addr = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
 
 	if (new_addr == MAP_FAILED)
 	{
@@ -174,7 +179,7 @@ char *rmp_alloc(long n_pages)
 	return new_addr;
 }
 
-void rmp_free(char *addr)
+void rmp_free(void *addr)
 {
 	auto exists = addr_hndl_map->find((ul)addr);
 	printf("RMP FREE called\n");

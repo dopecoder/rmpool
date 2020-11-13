@@ -4,8 +4,8 @@
 #include "ConnectionConfig.hpp"
 
 int rmp_init(ConnectionConfig);
-char* rmp_alloc(long); 
-void rmp_free(char*);
+void *rmp_alloc(long);
+void rmp_free(void *);
 
 void rmp_server_init(ConnectionConfig);
 

@@ -29,6 +29,7 @@ int main(int argc, char *argv[])
     const int limit = 100;
     void *malloc_ptrs[limit];
     getchar();
+    printf("Hello World!\n");
     printf("%d\n", foo());
 #if 0
     printf("%s\n", "malloc_test: (main) called");

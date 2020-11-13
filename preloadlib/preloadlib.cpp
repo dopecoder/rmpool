@@ -35,7 +35,7 @@ int rmp_fd = -1;
 void print(const char *str)
 {
     // #if DEBUG_PRINTS
-    // write(STDOUT_FILENO, str, strlen(str));
+    write(STDOUT_FILENO, str, strlen(str));
     // #endif
 }
 
