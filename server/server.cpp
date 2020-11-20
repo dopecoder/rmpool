@@ -7,7 +7,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <string.h>
-#include "rmp.hpp"
+#include "rmp_server.hpp"
 
 #define PORT 6767
 
@@ -101,7 +101,7 @@ void *connection_handler(void *thread_info)
 {
 	int read_size;
 	rmp::packet *req = new rmp::packet;
-	rmp::thread_req *info = new rmp::thread_req;
+	rmp::thread_req *info = (rmp::thread_req *)thread_info;
 	int sock = info->client_sock;
 
 	while ((read_size = recv(sock, req, sizeof(rmp::packet), 0)) > 0)
@@ -112,12 +112,15 @@ void *connection_handler(void *thread_info)
 		{
 
 			info->server->handle(req);
-			write(sock, req, sizeof(rmp::packet));
+			printf("Handle Returned For Action : %d\n", req->action);
+			send(sock, req, sizeof(rmp::packet), 0);
+			printf("Finished writing back results : %d\n", req->action);
 		}
 		else
 		{
 			break;
 		}
+		printf("Completed Action : %d\n", req->action);
 	}
 
 	if (read_size == 0)
