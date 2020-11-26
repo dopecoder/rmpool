@@ -24,38 +24,20 @@ int main(int argc, char const *argv[])
 
     rmp::Client client(cnf);
 
-    client.rmp_init();
+    printf(" RMP_INIT returned %d\n ", client.rmp_init());
 
-    double *data = (double *)client.rmp_alloc(10);
+    double *data = (double *)client.rmp_alloc(11);
 
-    // char *pg = (char *)malloc(4096);
-    // memset(data, 1, 8192 / 4);
-    // data[0] = 'H';
-    // data[1] = 'E';
-    // data[2] = 'L';
-    // data[3] = 'L';
-    // data[4] = 'O';
-
-    for (int i = 0; i < (2 * PAGE_SIZE) / sizeof(double); i++)
+    for (int i = 0; i < ((10 * PAGE_SIZE) / sizeof(double)); i++)
     {
-        data[i] = 100.0;
+        data[i] = i;
     }
 
-    for (int i = 0; i < (2 * PAGE_SIZE) / sizeof(double); i++)
+    for (int i = 0; i < ((10 * PAGE_SIZE) / sizeof(double)); i++)
     {
         printf("Value at %lx is %f\n", (data + i), data[i]);
         sum += data[i];
     }
 
     printf("Sum : %f\n", sum);
-
-    // client.rmp_write(hndl, 0, pg);
-
-    // char *return_page = (char *)malloc(4096);
-    // client.rmp_read(hndl, 0, return_page);
-
-    while (1)
-    {
-        /* code */
-    }
 }

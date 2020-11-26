@@ -34,7 +34,7 @@
 #define err(msg) perror(msg)
 #define print(exp...) printf(exp);
 #else
-#define err(msg) perror(msg)
+#define err(msg)
 #define print(exp...) printf(exp);
 #endif
 
@@ -134,7 +134,7 @@ static void invalidate_prev_resolved_page(long uffd)
         {
             // Resolve only if write
             printf("invalidate_prev_resolved_page : Saving page to server as the page is dirty\n");
-            page_resolver(region_start_addr, (char *)prev_resolved_addr, prev_resolved_op, prev_page);
+            page_resolver(region_start_addr, (void *)prev_resolved_addr, prev_resolved_op, prev_page);
         }
 
         madvise((void *)PGROUNDDOWN(prev_resolved_addr), PAGE_SIZE, MADV_DONTNEED);
@@ -143,7 +143,7 @@ static void invalidate_prev_resolved_page(long uffd)
 
 static void handle_unmap_event(long uffd)
 {
-    char *region_start_addr = (char *)uffd_start_addr_map->at(uffd);
+    void *region_start_addr = (void *)uffd_start_addr_map->at(uffd);
     uffdman_unregister_region(region_start_addr);
 }
 
@@ -152,7 +152,7 @@ static void *fault_handler_thread(void *arg)
     print("FAULT HANDLER STARTED\n") static struct uffd_msg msg; /* Data read from userfaultfd */
     static int fault_cnt = 0;                                    /* Number of faults so far handled */
     long uffd;                                                   /* userfaultfd file descriptor */
-    static char *page = NULL;
+    static void *page = NULL;
     struct uffdio_copy uffdio_copy;
     ssize_t nread;
 
@@ -162,7 +162,7 @@ static void *fault_handler_thread(void *arg)
 
     if (page == NULL)
     {
-        page = (char *)mmap(NULL, PAGE_SIZE, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+        page = (void *)mmap(NULL, PAGE_SIZE, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
         if (page == MAP_FAILED)
             print("mmap in userfault handler failed\n");
     }
@@ -209,11 +209,11 @@ static void *fault_handler_thread(void *arg)
         }
 
         /* Display info about the page-fault event */
-        printf("    UFFD_EVENT_PAGEFAULT event: ");
-        printf("uffd = %d; ", uffd);
-        printf("flags = %" PRIx64 "; ", msg.arg.pagefault.flags);
-        printf("address = %" PRIx64 "; ", msg.arg.pagefault.address);
-        printf("Rounded address = %" PRIx64 "\n", PGROUNDDOWN(msg.arg.pagefault.address));
+        print("    UFFD_EVENT_PAGEFAULT event: ");
+        print("uffd = %d; ", uffd);
+        print("flags = %" PRIx64 "; ", msg.arg.pagefault.flags);
+        print("address = %" PRIx64 "; ", msg.arg.pagefault.address);
+        print("Rounded address = %" PRIx64 "\n", PGROUNDDOWN(msg.arg.pagefault.address));
 
         fault_cnt++;
 

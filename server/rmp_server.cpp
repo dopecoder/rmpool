@@ -122,7 +122,7 @@ int rmp::Server::read(rmp::handle handle, rmp::packet *packet)
 	}
 
 	ul addr_with_offset = addr + (packet->size * offset);
-	strncpy(packet->data, (char *)addr_with_offset, sizeof(packet->data));
+	memcpy(packet->data, (void *)addr_with_offset, sizeof(packet->data));
 	return 0;
 }
 
@@ -139,7 +139,7 @@ int rmp::Server::write(rmp::handle handle, rmp::packet *packet)
 	}
 
 	ul addr_with_offset = addr + (packet->size * offset);
-	strncpy((char *)addr_with_offset, packet->data, sizeof(packet->data));
+	memcpy((void *)addr_with_offset, packet->data, sizeof(packet->data));
 	return 0;
 }
 

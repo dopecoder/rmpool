@@ -10,7 +10,7 @@
 #include <dlfcn.h>
 #include <sys/mman.h>
 
-#include "rmp.hpp"
+#include "rmp_client.hpp"
 
 // #if DEBUG_PRINTS
 // #define err(msg) perror(msg)
@@ -31,6 +31,7 @@ static int preloadlib_init_pending = 0;
 static int do_local_allocation = 0;
 
 int rmp_fd = -1;
+rmp::Client *client;
 
 void print(const char *str)
 {
@@ -51,14 +52,20 @@ void print(const char *str)
 static void rmp_conn_init(void)
 {
     print("preloadlib.so: (init) called\n");
-    ConnectionConfig config(
-        "127.0.0.1",
-        "6767",
-        "");
+
+    // rmp::config conf{
+    //     "127.0.0.1",
+    //     6767};
+
+    rmp::config conf{
+        "10.237.15.93",
+        6767};
 
     do_local_allocation = 1;
     print("preloadlib.so: (init) rmp_init Started\n");
-    rmp_fd = rmp_init(config);
+    client = new rmp::Client(conf);
+    rmp_fd = client->rmp_init();
+    // printf("RMP_FD IS %d\n", rmp_fd);
     print("preloadlib.so: (init) rmp_init finished\n");
     do_local_allocation = 0;
     print("preloadlib.so: (init) exiting\n");
@@ -166,7 +173,7 @@ void *malloc(size_t size)
         do_local_allocation = 1;
         long npages = ceil((float)size / (float)PAGE_SIZE);
         // printf("Size : %ld, PAGE SIZE : %ld, Pages : %ld\n", size, PAGE_SIZE, npages);
-        result = (void *)rmp_alloc(npages);
+        result = (void *)client->rmp_alloc(npages);
         print("preloadlib.so: (malloc) remote allocation finished\n");
         do_local_allocation = 0;
     }

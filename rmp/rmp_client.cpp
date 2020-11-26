@@ -47,51 +47,51 @@ static rmp_handle srv_handle;
 static ul srv_page, srv_offset;
 static enum rmp_req_type req_type;
 
-static void srv_alloc_pages(int sockfd)
-{
-	req_type = ALLOC_PAGES;
-	send(sockfd, &req_type, sizeof(enum rmp_req_type), 0);
-	cout("Sending request type: " << req_type << endl);
-	send(sockfd, &srv_n_pages, sizeof(ul), 0);
-	cout("Sending no. of pages: " << srv_n_pages << endl);
-	recv(sockfd, &srv_handle, sizeof(rmp_handle), 0);
-	cout("Received server handle: " << srv_handle << endl);
-}
+// static void srv_alloc_pages(int sockfd)
+// {
+// 	req_type = ALLOC_PAGES;
+// 	send(sockfd, &req_type, sizeof(enum rmp_req_type), 0);
+// 	cout("Sending request type: " << req_type << endl);
+// 	send(sockfd, &srv_n_pages, sizeof(ul), 0);
+// 	cout("Sending no. of pages: " << srv_n_pages << endl);
+// 	recv(sockfd, &srv_handle, sizeof(rmp_handle), 0);
+// 	cout("Received server handle: " << srv_handle << endl);
+// }
 
-static void srv_read_page(int sockfd)
-{
-	req_type = READ_PAGE;
-	send(sockfd, &req_type, sizeof(enum rmp_req_type), 0);
-	cout("Sending request type: " << req_type << endl);
-	send(sockfd, &srv_handle, sizeof(rmp_handle), 0);
-	cout("Sending server handle: " << srv_handle << endl);
-	send(sockfd, &srv_offset, sizeof(ul), 0);
-	cout("Sending offset: " << srv_offset << endl);
-	recv(sockfd, &srv_page, sizeof(ul), 0);
-	cout("Received page: " << srv_page << endl);
-}
+// static void srv_read_page(int sockfd)
+// {
+// 	req_type = READ_PAGE;
+// 	send(sockfd, &req_type, sizeof(enum rmp_req_type), 0);
+// 	cout("Sending request type: " << req_type << endl);
+// 	send(sockfd, &srv_handle, sizeof(rmp_handle), 0);
+// 	cout("Sending server handle: " << srv_handle << endl);
+// 	send(sockfd, &srv_offset, sizeof(ul), 0);
+// 	cout("Sending offset: " << srv_offset << endl);
+// 	recv(sockfd, &srv_page, sizeof(ul), 0);
+// 	cout("Received page: " << srv_page << endl);
+// }
 
-static void srv_write_page(int sockfd)
-{
-	req_type = WRITE_PAGE;
-	send(sockfd, &req_type, sizeof(enum rmp_req_type), 0);
-	cout("Sending request type: " << req_type << endl);
-	send(sockfd, &srv_handle, sizeof(rmp_handle), 0);
-	cout("Sending server handle: " << srv_handle << endl);
-	send(sockfd, &srv_offset, sizeof(ul), 0);
-	cout("Sending offset: " << srv_offset << endl);
-	send(sockfd, &srv_page, sizeof(ul), 0);
-	cout("Sending page: " << srv_page << endl);
-}
+// static void srv_write_page(int sockfd)
+// {
+// 	req_type = WRITE_PAGE;
+// 	send(sockfd, &req_type, sizeof(enum rmp_req_type), 0);
+// 	cout("Sending request type: " << req_type << endl);
+// 	send(sockfd, &srv_handle, sizeof(rmp_handle), 0);
+// 	cout("Sending server handle: " << srv_handle << endl);
+// 	send(sockfd, &srv_offset, sizeof(ul), 0);
+// 	cout("Sending offset: " << srv_offset << endl);
+// 	send(sockfd, &srv_page, sizeof(ul), 0);
+// 	cout("Sending page: " << srv_page << endl);
+// }
 
-static void srv_free_pages(int sockfd)
-{
-	req_type = FREE_PAGES;
-	send(sockfd, &req_type, sizeof(enum rmp_req_type), 0);
-	cout("Sending request type: " << req_type << endl);
-	send(sockfd, &srv_handle, sizeof(rmp_handle), 0);
-	cout("Sending server handle: " << srv_handle << endl);
-}
+// static void srv_free_pages(int sockfd)
+// {
+// 	req_type = FREE_PAGES;
+// 	send(sockfd, &req_type, sizeof(enum rmp_req_type), 0);
+// 	cout("Sending request type: " << req_type << endl);
+// 	send(sockfd, &srv_handle, sizeof(rmp_handle), 0);
+// 	cout("Sending server handle: " << srv_handle << endl);
+// }
 
 static void rmp_write_page(rmp_handle hd, ul offset, void *page)
 {

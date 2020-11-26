@@ -8,24 +8,40 @@
 #include <string.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <math.h>
 #include "uffdman.hpp"
 #include "rmp_client.hpp"
 
 #define PAGE_SIZE sysconf(_SC_PAGE_SIZE)
 
+#ifndef DEBUG_PRINTS
+#define DEBUG_PRINTS 0
+#endif
+
+#if DEBUG_PRINTS
+#define err(msg) perror(msg)
+#define printf(exp...) printf(exp);
+#else
+#define err(msg)
+#define printf(exp...) printf(exp);
+#endif
+
 int socketfd;
-// rmp::handle hndl;
 bool connected = false;
 std::unordered_map<ul, rmp::handle> *addr_hndl_map;
 std::unordered_map<ul, ul> *addr_npages_map;
 
 void rmp_write_page(rmp::handle hd, ul offset, void *page)
 {
-    printf("entered (rmp_write_page)\n");
-    printf("socketfd : %d, connected : %d\n", socketfd, connected);
     if (!connected)
     {
         return;
+    }
+
+    double *pg = (double *)page;
+    for (int i = 0; i < 4096 / sizeof(double); i++)
+    {
+        printf("Write Value : %f\n", pg[i]);
     }
 
     rmp::packet send_pkt;
@@ -40,21 +56,13 @@ void rmp_write_page(rmp::handle hd, ul offset, void *page)
 
     send(socketfd, &send_pkt, sizeof(rmp::packet), 0);
 
-    printf("send returned (rmp_write_page)\n");
-
     recv(socketfd, &return_pkt, sizeof(rmp::packet), 0);
-
-    printf("recv returned (rmp_write_page)\n");
 
     printf("Error (rmp_write_page) : %u\n", return_pkt.error);
 }
 
 void rmp_read_page(rmp::handle hd, ul offset, void *page)
 {
-    // memset(page, 1, 4096);
-
-    printf("entered (rmp_read_page)\n");
-    printf("socketfd : %d, connected : %d\n", socketfd, connected);
     if (!connected)
     {
         return;
@@ -62,7 +70,7 @@ void rmp_read_page(rmp::handle hd, ul offset, void *page)
 
     rmp::packet send_pkt;
     send_pkt.action = 1;
-    send_pkt.offset = 0;
+    send_pkt.offset = offset;
     send_pkt.size = PAGE_SIZE;
     send_pkt.error = 0;
     send_pkt.hndl = hd;
@@ -71,33 +79,34 @@ void rmp_read_page(rmp::handle hd, ul offset, void *page)
 
     send(socketfd, &send_pkt, sizeof(rmp::packet), 0);
 
-    printf("send returned (rmp_read_page)\n");
-
     recv(socketfd, &return_pkt, sizeof(rmp::packet), 0);
 
-    printf("recv returned (rmp_read_page)\n");
-
-    printf("Error (rmp_read_page) : %u\n", return_pkt.error);
-    printf("Data (rmp_read_page) : %s\n", return_pkt.data);
-
     memcpy(page, return_pkt.data, PAGE_SIZE);
+
+    double *pg = (double *)page;
+    for (int i = 0; i < 4096 / sizeof(double); i++)
+    {
+        printf("Read Value : %f\n", pg[i]);
+    }
 }
 
 void rmp_pagefault_resovler(void *start_addr, void *faulting_addr, int is_write, void *page)
 {
     ul offset = (((ul)faulting_addr & ~(PAGE_SIZE - 1)) - (ul)start_addr);
+    ul page_offset = floor(offset / PAGE_SIZE);
     rmp::handle hndl = addr_hndl_map->at((ul)start_addr);
     printf("rmp_pagefault_resovler:  ");
     printf("Offset = %ld; ", offset);
+    printf("Page Offset = %ld; ", page_offset);
     printf("Start Address = %" PRIx64 "; ", start_addr);
     printf("Faulting Address = %" PRIx64 "\n", faulting_addr);
     if (is_write)
     {
-        rmp_write_page(hndl, offset, page);
+        rmp_write_page(hndl, page_offset, page);
     }
     else
     {
-        rmp_read_page(hndl, offset, page);
+        rmp_read_page(hndl, page_offset, page);
     }
 }
 
@@ -204,8 +213,3 @@ void rmp::Client::rmp_write(rmp::handle hd, ul offset, void *page)
 {
     rmp_write_page(hd, offset, page);
 }
-
-// Client(config);              // Setup the args to establish connection
-// int rmp_init();              // Connect to Server
-// rmp::handle rmp_alloc(long); // Allocate n pages on server and returns a handle
-// int rmp_free(rmp::handle);   //free pages allocated for the handle

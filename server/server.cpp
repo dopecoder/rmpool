@@ -112,15 +112,30 @@ void *connection_handler(void *thread_info)
 		{
 
 			info->server->handle(req);
-			printf("Handle Returned For Action : %d\n", req->action);
+			// printf("Handle Returned For Action : %d\n", req->action);
 			send(sock, req, sizeof(rmp::packet), 0);
-			printf("Finished writing back results : %d\n", req->action);
+			// printf("Finished writing back results : %d\n", req->action);
+			if (req->action == 0)
+			{
+				printf("Allocated %d pages with handle : %d\n", req->npages, req->hndl);
+			}
+			else if (req->action == 1)
+			{
+				printf("Client Reading page : %d for handle : %d\n", req->offset, req->hndl);
+			}
+			else if (req->action == 2)
+			{
+				printf("Client Writing page : %d for handle : %d\n", req->offset, req->hndl);
+			}
+			else if (req->action == 3)
+			{
+				printf("Client Freeing handle : %d\n", req->hndl);
+			}
 		}
 		else
 		{
 			break;
 		}
-		printf("Completed Action : %d\n", req->action);
 	}
 
 	if (read_size == 0)

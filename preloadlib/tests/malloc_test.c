@@ -10,12 +10,17 @@ void print(const char *str)
 
 static int foo()
 {
-    int n = 8192;
+    int n = 2048;
     int sum = 0;
 
-    char *p = malloc(n);
+    int *p = (int *)malloc(n);
 
-    memset(p, 1, n);
+    // memset(p, 1, n);
+    for (int i = 0; i < n; i++)
+    {
+        p[i] = i;
+    }
+
     for (int i = 0; i < n; i++)
     {
         sum += p[i];
@@ -29,7 +34,7 @@ int main(int argc, char *argv[])
     const int limit = 100;
     void *malloc_ptrs[limit];
     getchar();
-    printf("Hello World!\n");
+    // printf("Hello World!\n");
     printf("%d\n", foo());
 #if 0
     printf("%s\n", "malloc_test: (main) called");

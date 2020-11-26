@@ -5,7 +5,7 @@
 #include <stdio.h>
 
 // Inputs
-#define ARRAY_SIZE 1000000
+#define ARRAY_SIZE 100000
 #define LOGS_ON 0
 
 void print_array(int *arr)
