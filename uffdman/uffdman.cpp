@@ -35,7 +35,7 @@
 #define print(exp...) printf(exp);
 #else
 #define err(msg)
-#define print(exp...) printf(exp);
+#define print(exp...)
 #endif
 
 #define PAGE_SIZE sysconf(_SC_PAGE_SIZE)

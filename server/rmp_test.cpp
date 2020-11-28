@@ -1,8 +1,9 @@
 
-#include "rmp_server.hpp"
 #include <iostream>
 #include <assert.h>
 #include <string.h>
+#include "rmp_types.hpp"
+#include "rmp_server.hpp"
 
 int passed = 0, failed = 0;
 
@@ -62,7 +63,7 @@ rmp::packet *get_free_packet(rmp::handle hndl)
 bool test_alloc_basic()
 {
     bool valid;
-    rmp::Server *s = new rmp::Server(rmp::config{});
+    rmp::Server *s = new rmp::Server(rmp::config());
     rmp::packet *alloc_req = get_alloc_packet(10, 4096);
 
     s->handle(alloc_req);
@@ -77,7 +78,7 @@ bool test_alloc_basic()
 bool test_alloc_100pages()
 {
     bool valid;
-    rmp::Server *s = new rmp::Server(rmp::config{});
+    rmp::Server *s = new rmp::Server(rmp::config());
     rmp::packet *alloc_req = get_alloc_packet(100, 4096);
 
     s->handle(alloc_req);
@@ -92,8 +93,8 @@ bool test_alloc_100pages()
 bool test_alloc_a_lot_of_pages()
 {
     bool valid;
-    rmp::Server *s = new rmp::Server(rmp::config{});
-    rmp::packet *alloc_req = get_alloc_packet(10000000000000000000000000, 4096);
+    rmp::Server *s = new rmp::Server(rmp::config());
+    rmp::packet *alloc_req = get_alloc_packet(1000000000000, 4096);
 
     s->handle(alloc_req);
 
@@ -108,7 +109,7 @@ bool test_alloc_a_lot_of_pages()
 bool test_read()
 {
     bool valid;
-    rmp::Server *s = new rmp::Server(rmp::config{});
+    rmp::Server *s = new rmp::Server(rmp::config());
     rmp::packet *alloc_req = new rmp::packet;
     alloc_req->action = 0;
     alloc_req->npages = 10;
@@ -150,7 +151,7 @@ bool test_read()
 bool test_read_wrong_offset()
 {
     bool valid;
-    rmp::Server *s = new rmp::Server(rmp::config{});
+    rmp::Server *s = new rmp::Server(rmp::config());
     rmp::packet *alloc_req = new rmp::packet;
     alloc_req->action = 0;
     alloc_req->npages = 10;
@@ -191,7 +192,7 @@ bool test_read_wrong_offset()
 bool test_read_wrong_handle()
 {
     bool valid;
-    rmp::Server *s = new rmp::Server(rmp::config{});
+    rmp::Server *s = new rmp::Server(rmp::config());
     rmp::packet *read_req = new rmp::packet;
     read_req->action = 1;
     read_req->offset = 0;
@@ -211,7 +212,7 @@ bool test_read_wrong_handle()
 bool test_write()
 {
     bool valid;
-    rmp::Server *s = new rmp::Server(rmp::config{});
+    rmp::Server *s = new rmp::Server(rmp::config());
     rmp::packet *alloc_req = new rmp::packet;
     alloc_req->action = 0;
     alloc_req->npages = 10;
@@ -243,7 +244,7 @@ bool test_write()
 bool test_write_wrong_offset()
 {
     bool valid;
-    rmp::Server *s = new rmp::Server(rmp::config{});
+    rmp::Server *s = new rmp::Server(rmp::config());
     rmp::packet *alloc_req = new rmp::packet;
     alloc_req->action = 0;
     alloc_req->npages = 10;
@@ -275,7 +276,7 @@ bool test_write_wrong_offset()
 bool test_write_wrong_handle()
 {
     bool valid;
-    rmp::Server *s = new rmp::Server(rmp::config{});
+    rmp::Server *s = new rmp::Server(rmp::config());
 
     char *msg = "Hello World!";
     rmp::packet *write_req = new rmp::packet;
@@ -299,7 +300,7 @@ bool test_write_wrong_handle()
 bool test_free()
 {
     bool valid;
-    rmp::Server *s = new rmp::Server(rmp::config{});
+    rmp::Server *s = new rmp::Server(rmp::config());
     rmp::packet *alloc_req = new rmp::packet;
     alloc_req->action = 0;
     alloc_req->npages = 10;
@@ -330,7 +331,7 @@ bool test_free()
 bool test_free_and_read()
 {
     bool valid;
-    rmp::Server *s = new rmp::Server(rmp::config{});
+    rmp::Server *s = new rmp::Server(rmp::config());
     rmp::packet *alloc_req = new rmp::packet;
     alloc_req->action = 0;
     alloc_req->npages = 10;
@@ -371,7 +372,7 @@ bool test_free_and_read()
 bool test_free_wrong_handle()
 {
     bool valid;
-    rmp::Server *s = new rmp::Server(rmp::config{});
+    rmp::Server *s = new rmp::Server(rmp::config());
     rmp::packet *free_req = new rmp::packet;
     free_req->action = 3;
     free_req->size = 4096;

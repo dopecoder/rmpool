@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include "uffdman.hpp"
+#include "rmp_types.hpp"
 #include "rmp_client.hpp"
 
 #define PAGE_SIZE sysconf(_SC_PAGE_SIZE)

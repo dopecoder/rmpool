@@ -1,13 +1,12 @@
 CXX=g++
-OTH_INC_DIR = ../include
-CXXFLAGS=-c -I $(OTH_INC_DIR) -fPIC # Ugly!
-DEPS = $(OTH_INC_DIR)/uffdman.hpp
+INC_DIR = ../include
+CXXFLAGS=-c -Wall -I $(INC_DIR) # Ugly!
 SRC=../uffdman/*.cpp
 
-all: client preloadlib
+all: client #preloadlib
 
-preloadlib: uffdman.o
-	g++ bin/uffdman.o bin/rmp_client.o -shared -fPIC -o ./bin/preloadlib.so preloadlib.cpp -ldl -lpthread
+# preloadlib: uffdman.o
+# 	g++ bin/uffdman.o bin/rmp_client.o -shared -fPIC -o ./bin/preloadlib.so preloadlib.cpp -ldl -lpthread
 
 client: uffdman.o
 	$(CXX) -o bin/client -pthread bin/uffdman.o bin/rmp_client.o bin/client.o 
@@ -28,7 +27,7 @@ rmp_client.o: client.o
 	$(CXX) $(CXXFLAGS) rmp_client.cpp -o bin/rmp_client.o 
 
 client.o: mkdir
-	$(CXX) -c client.cpp -o bin/client.o
+	$(CXX) $(CXXFLAGS) client.cpp -o bin/client.o
 
 mkdir:
 	mkdir -p bin

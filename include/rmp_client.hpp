@@ -4,19 +4,16 @@
 #include <vector>
 #include <string>
 #include <cmath>
-
-typedef unsigned int u32;
-typedef unsigned long ul;
+#include "rmp_types.hpp"
 
 namespace rmp
 {
-    typedef long handle;
 
     // Request contains fields required to
     // complete a client's request
     typedef struct
     {
-        handle hndl;
+        rmp::handle hndl;
         u32 npages;
         u32 size;
         u32 offset;

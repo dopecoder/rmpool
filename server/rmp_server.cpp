@@ -1,5 +1,6 @@
 #include <sys/mman.h>
 #include <string.h>
+#include "rmp_types.hpp"
 #include "rmp_server.hpp"
 
 void handle_alloc(rmp::Server *rmp_server, rmp::packet *packet)

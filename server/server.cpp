@@ -7,6 +7,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <string.h>
+
 #include "rmp_server.hpp"
 
 #define PORT 6767
@@ -17,7 +18,7 @@ rmp::Server *server;
 void *connection_handler(void *);
 void init()
 {
-	server = new rmp::Server(rmp::config{});
+	server = new rmp::Server(rmp::config());
 }
 
 int main(int argc, char const *argv[])

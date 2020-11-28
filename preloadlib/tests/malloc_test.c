@@ -13,11 +13,7 @@ static int foo()
     int n = 4096 * 5;
     int sum = 0;
 
-    sleep(2);
-
     int *p = (int *)malloc(n);
-
-    sleep(2);
 
     // memset(p, 1, n);
     for (int i = 0; i < n / sizeof(int); i++)

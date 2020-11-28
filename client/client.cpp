@@ -32,8 +32,9 @@ int main(int argc, char const *argv[])
     double *data2 = (double *)client.rmp_alloc(11);
     double *data3 = (double *)client.rmp_alloc(11);
 
-    printf(" data 1 : %lx\n ", data);
-    printf(" data 2 : %lx\n ", data2);
+    printf("data 1 : %lx\n", data);
+    printf("data 2 : %lx\n", data2);
+    printf("data 3 : %lx\n", data3);
 
     for (int i = 0; i < ((10 * PAGE_SIZE) / sizeof(double)); i++)
     {

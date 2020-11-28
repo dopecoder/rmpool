@@ -2,21 +2,10 @@
 
 #include <unordered_map>
 #include <mutex>
-
-typedef unsigned int u32;
-typedef unsigned long ul;
-
-static u32 ALLOC_FAILED = 1;
-static u32 READ_FAILED = 2;
-static u32 WRITE_FAILED = 3;
-static u32 FREE_FAILED = 4;
-static u32 UNKNOWN_ACTION = 5;
-static u32 INVALID_HANDLE = 6;
+#include "rmp_types.hpp"
 
 namespace rmp
 {
-	typedef long handle;
-
 	// Request contains fields required to
 	// complete a client's request
 	typedef struct

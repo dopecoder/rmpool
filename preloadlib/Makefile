@@ -4,7 +4,7 @@ SRC=../uffdman/uffdman.cpp ../client/rmp_client.cpp
 all: preloadlib preload-tests
 	
 preloadlib: mkdir
-	g++ -g -I ../include -I ../client/ $(SRC) -shared -fPIC -o ./bin/preloadlib.so preloadlib.cpp -ldl -lpthread
+	g++ -Wall -I ../include $(SRC) -shared -fPIC -o ./bin/preloadlib.so preloadlib.cpp -ldl -lpthread
 
 preload-tests:
 	$(MAKE) -C tests/ all
