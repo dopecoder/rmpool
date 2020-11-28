@@ -9,7 +9,6 @@
 #include <stdlib.h>
 #include <dlfcn.h>
 #include <sys/mman.h>
-#include <pthread.h>
 
 #include "rmp_client.hpp"
 
@@ -32,7 +31,6 @@ static int preloadlib_init_pending = 0;
 static int do_local_allocation = 0;
 
 int rmp_fd = -1;
-pthread_t mainthread_id;
 rmp::Client *client;
 
 void print(const char *str)
@@ -61,10 +59,9 @@ static void rmp_conn_init(void)
 
     rmp::config conf{
         "10.237.15.93",
-        6768};
+        6767};
 
     do_local_allocation = 1;
-    mainthread_id = pthread_self();
     print("preloadlib.so: (init) rmp_init Started\n");
     client = new rmp::Client(conf);
     rmp_fd = client->rmp_init();
@@ -149,21 +146,6 @@ void free(void *ptr)
     print("preloadlib.so: (free) exiting\n");
 }
 
-void *local_malloc(size_t size)
-{
-    void *result;
-    print("preloadlib.so: (malloc) local allocation started\n");
-    if (stdlib_malloc == NULL)
-    {
-        preloadlib_init();
-        print("preloadlib.so: (malloc) stdlib_malloc is NULL\n");
-        return NULL;
-    }
-    result = stdlib_malloc(size);
-    print("preloadlib.so: (malloc) local allocation done\n");
-    return result;
-}
-
 void *malloc(size_t size)
 {
     print("preloadlib.so: (malloc) called\n");
@@ -171,26 +153,29 @@ void *malloc(size_t size)
     void *result;
     if (do_local_allocation)
     {
-        return local_malloc(size);
+        print("preloadlib.so: (malloc) local allocation started\n");
+        if (stdlib_malloc == NULL)
+        {
+            preloadlib_init();
+            print("preloadlib.so: (malloc) stdlib_malloc is NULL\n");
+            return NULL;
+        }
+        result = stdlib_malloc(size);
+        print("preloadlib.so: (malloc) local allocation done\n");
+        return result;
     }
 
     if (check_conn())
     {
 
-        if (pthread_self() != mainthread_id)
-        {
-            return local_malloc(size);
-        }
-
         //call rmp_alloc
         print("preloadlib.so: (malloc) remote allocation\n");
         do_local_allocation = 1;
-        long npages = ceil((float)size / (float)PAGE_SIZE) + 1;
+        long npages = ceil((float)size / (float)PAGE_SIZE);
         // printf("Size : %ld, PAGE SIZE : %ld, Pages : %ld\n", size, PAGE_SIZE, npages);
         result = (void *)client->rmp_alloc(npages);
         print("preloadlib.so: (malloc) remote allocation finished\n");
         do_local_allocation = 0;
-        return result;
     }
     // else
     // {
@@ -198,6 +183,6 @@ void *malloc(size_t size)
     // }
 
     //fprintf(stderr, "preloadlib.so: malloc(0x%zx) = %p\n", size, result);
-    print("preloadlib.so: (malloc) failed\n");
-    return NULL;
+    print("preloadlib.so: (malloc) exiting\n");
+    return result;
 }

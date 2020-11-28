@@ -10,18 +10,25 @@ void print(const char *str)
 
 static int foo()
 {
-    int n = 2048;
+    int n = 4096 * 5;
     int sum = 0;
+
+    sleep(2);
 
     int *p = (int *)malloc(n);
 
+    sleep(2);
+
     // memset(p, 1, n);
-    for (int i = 0; i < n; i++)
+    for (int i = 0; i < n / sizeof(int); i++)
     {
+        // write(STDOUT_FILENO, i + '0', strlen(i + '0'));
+        // write(STDOUT_FILENO, '\n', 1);
+        printf("%d\n", i);
         p[i] = i;
     }
 
-    for (int i = 0; i < n; i++)
+    for (int i = 0; i < n / sizeof(int); i++)
     {
         sum += p[i];
     }
@@ -30,11 +37,12 @@ static int foo()
 
 int main(int argc, char *argv[])
 {
-    int i;
-    const int limit = 100;
-    void *malloc_ptrs[limit];
-    getchar();
+    // int i;
+    // const int limit = 100;
+    // void *malloc_ptrs[limit];
+    // getchar();
     // printf("Hello World!\n");
+
     printf("%d\n", foo());
 #if 0
     printf("%s\n", "malloc_test: (main) called");

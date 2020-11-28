@@ -23,7 +23,7 @@
 #define printf(exp...) printf(exp);
 #else
 #define err(msg)
-#define printf(exp...) printf(exp);
+#define printf(exp...)
 #endif
 
 int socketfd;
@@ -152,6 +152,8 @@ int rmp::Client::rmp_init()
         printf("Error while establishing connection to server\n");
         return -1;
     }
+
+    uffdman_init();
     uffdman_register_page_resolver(&rmp_pagefault_resovler);
 
     // Initialize the maps

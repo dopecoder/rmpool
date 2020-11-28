@@ -43,6 +43,8 @@
 
 using namespace std;
 
+bool uffd_initialized = false;
+
 static unordered_map<unsigned long, pthread_t> *addr_tid_map;
 
 // Double sided maps for starting address of a region to uffd
@@ -58,11 +60,15 @@ static void (*page_resolver)(void *start_addr, void *faulting_addr, int is_write
 void uffdman_init()
 {
 
-    uffd_prev_resolved_addr = new unordered_map<long, unsigned long>();
-    uffd_prev_resolved_op = new unordered_map<long, unsigned long>();
-    addr_tid_map = new unordered_map<unsigned long, pthread_t>();
-    start_addr_uffd_map = new unordered_map<unsigned long, long>();
-    uffd_start_addr_map = new unordered_map<long, unsigned long>();
+    if (!uffd_initialized)
+    {
+        uffd_prev_resolved_addr = new unordered_map<long, unsigned long>();
+        uffd_prev_resolved_op = new unordered_map<long, unsigned long>();
+        addr_tid_map = new unordered_map<unsigned long, pthread_t>();
+        start_addr_uffd_map = new unordered_map<unsigned long, long>();
+        uffd_start_addr_map = new unordered_map<long, unsigned long>();
+        uffd_initialized = true;
+    }
 }
 
 void uffdman_destroy()
@@ -128,12 +134,12 @@ static void invalidate_prev_resolved_page(long uffd)
         // Invalidate previous page after resolving it
         void *prev_page = (void *)prev_resolved_addr;
 
-        printf("Prev Resolved Address = %" PRIx64 "; ", prev_resolved_addr);
+        print("Prev Resolved Address = %" PRIx64 "; ", prev_resolved_addr);
 
         if (prev_resolved_op)
         {
             // Resolve only if write
-            printf("invalidate_prev_resolved_page : Saving page to server as the page is dirty\n");
+            print("invalidate_prev_resolved_page : Saving page to server as the page is dirty\n");
             page_resolver(region_start_addr, (void *)prev_resolved_addr, prev_resolved_op, prev_page);
         }
 
@@ -149,9 +155,10 @@ static void handle_unmap_event(long uffd)
 
 static void *fault_handler_thread(void *arg)
 {
-    print("FAULT HANDLER STARTED\n") static struct uffd_msg msg; /* Data read from userfaultfd */
-    static int fault_cnt = 0;                                    /* Number of faults so far handled */
-    long uffd;                                                   /* userfaultfd file descriptor */
+    print("FAULT HANDLER STARTED\n");
+    static struct uffd_msg msg; /* Data read from userfaultfd */
+    static int fault_cnt = 0;   /* Number of faults so far handled */
+    long uffd;                  /* userfaultfd file descriptor */
     static void *page = NULL;
     struct uffdio_copy uffdio_copy;
     ssize_t nread;
@@ -332,7 +339,6 @@ int uffdman_register_region(void *addr, unsigned long n_pages)
     }
 
     /* Create a thread that will process the userfaultfd events */
-
     int out = pthread_create(&thrd_id, NULL, fault_handler_thread, (void *)uffd);
     if (out != 0)
     {
@@ -340,9 +346,6 @@ int uffdman_register_region(void *addr, unsigned long n_pages)
         err("Error while creating fault handler thread");
         return -1;
     }
-
-    // Initialize the maps
-    uffdman_init();
 
     addr_tid_map->insert({(unsigned long)addr, thrd_id});
     start_addr_uffd_map->insert({(unsigned long)addr, uffd});
