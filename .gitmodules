@@ -1,3 +1,6 @@
 [submodule "libsrvcli"]
 	path = libsrvcli
 	url = https://github.com/nandavelugoti/libsrvcli.git
+[submodule "benchmarks/sorting-benchmarks"]
+	path = benchmarks/sorting-benchmarks
+	url = https://github.com/dopecoder/sorting-benchmark.git
