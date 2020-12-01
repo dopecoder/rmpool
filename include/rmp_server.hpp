@@ -93,6 +93,7 @@ namespace rmp
 
 		inline bool contains_key(rmp::handle handle)
 		{
+			std::lock_guard<std::mutex> guard(this->addr_map_lock);
 			return this->addr_map.find(handle) != this->addr_map.end();
 		}
 	};

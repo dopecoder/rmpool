@@ -13,7 +13,7 @@ namespace rmp
     // complete a client's request
     typedef struct
     {
-        rmp::handle hndl;
+        handle hndl;
         u32 npages;
         u32 size;
         u32 offset;

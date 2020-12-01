@@ -10,13 +10,13 @@ void print(const char *str)
 
 static int foo()
 {
-    int n = 4096 * 5;
+    int n = 4096 * 100;
     int sum = 0;
 
     int *p = (int *)malloc(n);
 
     // memset(p, 1, n);
-    for (int i = 0; i < n / sizeof(int); i++)
+    for (int i = 0; i < (n / sizeof(int)); i++)
     {
         // write(STDOUT_FILENO, i + '0', strlen(i + '0'));
         // write(STDOUT_FILENO, '\n', 1);
@@ -24,10 +24,38 @@ static int foo()
         p[i] = i;
     }
 
-    for (int i = 0; i < n / sizeof(int); i++)
+    for (int i = 0; i < (n / sizeof(int)); i++)
     {
         sum += p[i];
     }
+
+    // // memset(p, 1, n);
+    // for (int i = 0; i < (n / sizeof(int)) / 2; i++)
+    // {
+    //     // write(STDOUT_FILENO, i + '0', strlen(i + '0'));
+    //     // write(STDOUT_FILENO, '\n', 1);
+    //     printf("%d\n", i);
+    //     p[i] = i;
+    // }
+
+    // for (int i = 0; i < (n / sizeof(int)) / 2; i++)
+    // {
+    //     sum += p[i];
+    // }
+
+    // // memset(p, 1, n);
+    // for (int i = (n / sizeof(int)) / 2; i < (n / sizeof(int)); i++)
+    // {
+    //     // write(STDOUT_FILENO, i + '0', strlen(i + '0'));
+    //     // write(STDOUT_FILENO, '\n', 1);
+    //     printf("%d\n", i);
+    //     p[i] = i;
+    // }
+
+    // for (int i = (n / sizeof(int)) / 2; i < (n / sizeof(int)); i++)
+    // {
+    //     sum += p[i];
+    // }
     return sum;
 }
 

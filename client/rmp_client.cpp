@@ -27,22 +27,46 @@
 #define printf(exp...)
 #endif
 
+char *print_stmt = "";
 int socketfd;
 bool connected = false;
 std::unordered_map<ul, rmp::handle> *addr_hndl_map;
 std::unordered_map<ul, ul> *addr_npages_map;
 
+void print(int n)
+{
+    // If number is smaller than 0, put a - sign
+    // and change number to positive
+    if (n < 0)
+    {
+        write(STDOUT_FILENO, "-", 1);
+        n = -n;
+    }
+
+    // Remove the last digit and recur
+    if (n / 10)
+        print(n / 10);
+
+    char s = ((n % 10) + '0');
+    // Print the last digit
+    write(STDOUT_FILENO, &s, 1);
+}
+
 void rmp_write_page(rmp::handle hd, ul offset, void *page)
 {
+
+    // print_stmt = "Entered rmp_write_page\n";
+    write(STDOUT_FILENO, print_stmt, strlen(print_stmt));
+
     if (!connected)
     {
         return;
     }
 
-    double *pg = (double *)page;
-    for (int i = 0; i < 4096 / sizeof(double); i++)
+    int *pg = (int *)page;
+    for (int i = 0; i < 4096 / sizeof(int); i++)
     {
-        printf("Write Value : %f\n", pg[i]);
+        printf("Write Value : %d\n", pg[i]);
     }
 
     rmp::packet send_pkt;
@@ -55,15 +79,32 @@ void rmp_write_page(rmp::handle hd, ul offset, void *page)
 
     rmp::packet return_pkt;
 
+    // print_stmt = "SEND BYTES (rmp_write_page): ";
+    write(STDOUT_FILENO, print_stmt, strlen(print_stmt));
+    // print((int)send(socketfd, &send_pkt, sizeof(rmp::packet), 0));
     send(socketfd, &send_pkt, sizeof(rmp::packet), 0);
+    usleep(1000);
+
+    // print_stmt = "\nSent req (rmp_write_page)\n";
+    write(STDOUT_FILENO, print_stmt, strlen(print_stmt));
 
     recv(socketfd, &return_pkt, sizeof(rmp::packet), 0);
+    usleep(1000);
+
+    // print_stmt = "Recvd req (rmp_write_page)\n";
+    write(STDOUT_FILENO, print_stmt, strlen(print_stmt));
 
     printf("Error (rmp_write_page) : %u\n", return_pkt.error);
+
+    // print_stmt = "Exiting rmp_write_page\n";
+    write(STDOUT_FILENO, print_stmt, strlen(print_stmt));
 }
 
 void rmp_read_page(rmp::handle hd, ul offset, void *page)
 {
+    // print_stmt = "Entered rmp_read_page\n";
+    write(STDOUT_FILENO, print_stmt, strlen(print_stmt));
+
     if (!connected)
     {
         return;
@@ -78,17 +119,31 @@ void rmp_read_page(rmp::handle hd, ul offset, void *page)
 
     rmp::packet return_pkt;
 
+    // print_stmt = "SEND BYTES (rmp_read_page) : ";
+    write(STDOUT_FILENO, print_stmt, strlen(print_stmt));
+    // print((int)send(socketfd, &send_pkt, sizeof(rmp::packet), 0));
     send(socketfd, &send_pkt, sizeof(rmp::packet), 0);
+    usleep(1000);
+
+    // print_stmt = "\nSent req (rmp_read_page)\n";
+    write(STDOUT_FILENO, print_stmt, strlen(print_stmt));
 
     recv(socketfd, &return_pkt, sizeof(rmp::packet), 0);
+    usleep(1000);
+
+    // print_stmt = "Recvd req (rmp_read_page)\n";
+    write(STDOUT_FILENO, print_stmt, strlen(print_stmt));
 
     memcpy(page, return_pkt.data, PAGE_SIZE);
 
-    double *pg = (double *)page;
-    for (int i = 0; i < 4096 / sizeof(double); i++)
+    int *pg = (int *)page;
+    for (int i = 0; i < 4096 / sizeof(int); i++)
     {
-        printf("Read Value : %f\n", pg[i]);
+        printf("Read Value : %d\n", pg[i]);
     }
+
+    // print_stmt = "Exiting rmp_read_page\n";
+    write(STDOUT_FILENO, print_stmt, strlen(print_stmt));
 }
 
 void rmp_pagefault_resovler(void *start_addr, void *faulting_addr, int is_write, void *page)
@@ -189,8 +244,10 @@ void *rmp::Client::rmp_alloc(u32 npages)
     rmp::packet return_pkt;
 
     send(socketfd, &send_pkt, sizeof(rmp::packet), 0);
+    usleep(1000);
 
     recv(socketfd, &return_pkt, sizeof(rmp::packet), 0);
+    usleep(1000);
 
     printf("Handle : %d\n", return_pkt.hndl);
 

@@ -1,0 +1,144 @@
+--------------INT SEQ 1024 ---------------
+Write Time 2.112e-06 seconds.
+Read Time 2.726e-06 seconds.
+Total Time 4.838e-06 seconds.
+Avg Read Time 2.66211e-09 seconds.
+Avg Write Time 2.0625e-09 seconds.
+Avg Total Time 4.72461e-09 seconds.
+Sum 523776
+SUM is valid
+--------------INT SEQ 10240 ---------------
+Write Time 3.3013e-05 seconds.
+Read Time 2.6613e-05 seconds.
+Total Time 5.9626e-05 seconds.
+Avg Read Time 2.59893e-09 seconds.
+Avg Write Time 3.22393e-09 seconds.
+Avg Total Time 5.82285e-09 seconds.
+Sum 52423680
+SUM is valid
+--------------INT SEQ 102400 ---------------
+Write Time 0.00034192 seconds.
+Read Time 0.000268899 seconds.
+Total Time 0.000610819 seconds.
+Avg Read Time 2.62597e-09 seconds.
+Avg Write Time 3.33906e-09 seconds.
+Avg Total Time 5.96503e-09 seconds.
+Sum 947861504
+SUM is valid
+--------------INT SEQ 1024000 ---------------
+Write Time 0.0032973 seconds.
+Read Time 0.00265762 seconds.
+Total Time 0.00595493 seconds.
+Avg Read Time 2.59534e-09 seconds.
+Avg Write Time 3.22002e-09 seconds.
+Avg Total Time 5.81536e-09 seconds.
+Sum 301477888
+SUM is valid
+--------------DOUBLE SEQ 1024 ---------------
+Write Time 4.438e-06 seconds.
+Read Time 2.946e-06 seconds.
+Total Time 7.384e-06 seconds.
+Avg Read Time 2.87695e-09 seconds.
+Avg Write Time 4.33398e-09 seconds.
+Avg Total Time 7.21094e-09 seconds.
+Sum 523776
+SUM is valid
+--------------DOUBLE SEQ 10240 ---------------
+Write Time 5.5489e-05 seconds.
+Read Time 2.8938e-05 seconds.
+Total Time 8.4427e-05 seconds.
+Avg Read Time 2.82598e-09 seconds.
+Avg Write Time 5.41885e-09 seconds.
+Avg Total Time 8.24482e-09 seconds.
+Sum 5.24237e+07
+SUM is valid
+--------------DOUBLE SEQ 102400 ---------------
+Write Time 0.000566211 seconds.
+Read Time 0.00029783 seconds.
+Total Time 0.000864041 seconds.
+Avg Read Time 2.9085e-09 seconds.
+Avg Write Time 5.5294e-09 seconds.
+Avg Total Time 8.4379e-09 seconds.
+Sum 5.24283e+09
+SUM is valid
+--------------DOUBLE SEQ 1024000 ---------------
+Write Time 0.00555507 seconds.
+Read Time 0.00336082 seconds.
+Total Time 0.00891589 seconds.
+Avg Read Time 3.28205e-09 seconds.
+Avg Write Time 5.42487e-09 seconds.
+Avg Total Time 8.70692e-09 seconds.
+Sum 5.24287e+11
+SUM is valid
+--------------INT RAND 1024 ---------------
+Write Time 0.000859726 seconds.
+Read Time 0.000906845 seconds.
+Total Time 0.00176657 seconds.
+Avg Read Time 8.85591e-07 seconds.
+Avg Write Time 8.39576e-07 seconds.
+Avg Total Time 1.72517e-06 seconds.
+Sum 523776
+SUM is valid
+--------------INT RAND 10240 ---------------
+Write Time 0.00878468 seconds.
+Read Time 0.00793557 seconds.
+Total Time 0.0167202 seconds.
+Avg Read Time 7.74958e-07 seconds.
+Avg Write Time 8.57879e-07 seconds.
+Avg Total Time 1.63284e-06 seconds.
+Sum 52423680
+SUM is valid
+--------------INT RAND 102400 ---------------
+Write Time 0.0755401 seconds.
+Read Time 0.0726175 seconds.
+Total Time 0.148158 seconds.
+Avg Read Time 7.09156e-07 seconds.
+Avg Write Time 7.37696e-07 seconds.
+Avg Total Time 1.44685e-06 seconds.
+Sum 947861504
+SUM is valid
+--------------INT RAND 1024000 ---------------
+Write Time 0.752514 seconds.
+Read Time 0.819732 seconds.
+Total Time 1.57225 seconds.
+Avg Read Time 8.00519e-07 seconds.
+Avg Write Time 7.34877e-07 seconds.
+Avg Total Time 1.5354e-06 seconds.
+Sum 301477888
+SUM is valid
+--------------DOUBLE RAND 1024 ---------------
+Write Time 0.000703532 seconds.
+Read Time 0.000698438 seconds.
+Total Time 0.00140197 seconds.
+Avg Read Time 6.82068e-07 seconds.
+Avg Write Time 6.87043e-07 seconds.
+Avg Total Time 1.36911e-06 seconds.
+Sum 523776
+SUM is valid
+--------------DOUBLE RAND 10240 ---------------
+Write Time 0.00713893 seconds.
+Read Time 0.00764651 seconds.
+Total Time 0.0147854 seconds.
+Avg Read Time 7.46729e-07 seconds.
+Avg Write Time 6.97161e-07 seconds.
+Avg Total Time 1.44389e-06 seconds.
+Sum 5.24237e+07
+SUM is valid
+--------------DOUBLE RAND 102400 ---------------
+Write Time 0.0741351 seconds.
+Read Time 0.0752081 seconds.
+Total Time 0.149343 seconds.
+Avg Read Time 7.34454e-07 seconds.
+Avg Write Time 7.23976e-07 seconds.
+Avg Total Time 1.45843e-06 seconds.
+Sum 5.24283e+09
+SUM is valid
+--------------DOUBLE RAND 1024000 ---------------
+Write Time 0.843535 seconds.
+Read Time 0.901726 seconds.
+Total Time 1.74526 seconds.
+Avg Read Time 8.80591e-07 seconds.
+Avg Write Time 8.23764e-07 seconds.
+Avg Total Time 1.70436e-06 seconds.
+Sum 5.24287e+11
+SUM is valid

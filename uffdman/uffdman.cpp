@@ -15,6 +15,7 @@
 #include <poll.h>
 #include <unordered_map>
 #include <iostream>
+#include <mutex>
 
 #include "uffdman.hpp"
 
@@ -44,6 +45,8 @@
 using namespace std;
 
 bool uffd_initialized = false;
+
+mutex fault_handler_cr;
 
 static unordered_map<unsigned long, pthread_t> *addr_tid_map;
 
@@ -221,11 +224,12 @@ static void *fault_handler_thread(void *arg)
         print("flags = %" PRIx64 "; ", msg.arg.pagefault.flags);
         print("address = %" PRIx64 "; ", msg.arg.pagefault.address);
         print("Rounded address = %" PRIx64 "\n", PGROUNDDOWN(msg.arg.pagefault.address));
-
         fault_cnt++;
 
         void *faulting_addr = (void *)msg.arg.pagefault.address;
         int faulting_op = msg.arg.pagefault.flags & UFFD_PAGEFAULT_FLAG_WRITE;
+
+        std::lock_guard<std::mutex> guard(fault_handler_cr);
 
         invalidate_prev_resolved_page(uffd);
 

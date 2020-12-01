@@ -10,6 +10,7 @@
 #include <dlfcn.h>
 #include <sys/mman.h>
 #include <pthread.h>
+#include <mutex>
 
 #include "rmp_client.hpp"
 
@@ -34,11 +35,12 @@ static int do_local_allocation = 0;
 int rmp_fd = -1;
 pthread_t mainthread_id;
 rmp::Client *client;
+extern std::mutex fault_handler_cr;
 
 void print(const char *str)
 {
     // #if DEBUG_PRINTS
-    write(STDOUT_FILENO, str, strlen(str));
+    // write(STDOUT_FILENO, str, strlen(str));
     // #endif
 }
 
@@ -63,6 +65,7 @@ static void rmp_conn_init(void)
         "10.237.15.93",
         6768};
 
+    std::lock_guard<std::mutex> guard(fault_handler_cr);
     do_local_allocation = 1;
     mainthread_id = pthread_self();
     print("preloadlib.so: (init) rmp_init Started\n");
@@ -182,12 +185,14 @@ void *malloc(size_t size)
             return local_malloc(size);
         }
 
+        std::lock_guard<std::mutex> guard(fault_handler_cr);
         //call rmp_alloc
         print("preloadlib.so: (malloc) remote allocation\n");
         do_local_allocation = 1;
-        long npages = ceil((float)size / (float)PAGE_SIZE) + 1;
+        long npages = ceil((float)size / (float)PAGE_SIZE);
         // printf("Size : %ld, PAGE SIZE : %ld, Pages : %ld\n", size, PAGE_SIZE, npages);
         result = (void *)client->rmp_alloc(npages);
+        fault_handler_cr.unlock();
         print("preloadlib.so: (malloc) remote allocation finished\n");
         do_local_allocation = 0;
         return result;

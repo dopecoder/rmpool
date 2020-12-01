@@ -5,7 +5,8 @@ uffdman_unregister_region
 set exec-wrapper env 'LD_PRELOAD=./bin/preloadlib.so'
 file ./a.out
 
-
+set exec-wrapper env 'LD_PRELOAD=../../preloadlib/bin/preloadlib.so'
+LD_PRELOAD=../../preloadlib/bin/preloadlib.so ./sorting_benchmarks.out 10000 data/rand_input.txt ../data/sorting-benchmarks/data/output-local.txt qs > out2
 
 1. quicksort
 2. matrix multiplication
