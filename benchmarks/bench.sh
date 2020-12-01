@@ -1,4 +1,8 @@
 
+
+# create a output directory
+mkdir -p data
+
 # QUICKSORT
 
 # LD_PRELOAD=../preloadlib/bin/preloadlib.so ./bin/quicksort-1-thousand > qs-1-thousand-remote
@@ -28,18 +32,18 @@
 
 # SYSBENCH
 
-# LD_PRELOAD=../preloadlib/bin/preloadlib.so sysbench --test=memory --memory-block-size=64K --memory-total-size=100G --num-threads=1 run > sysbench-64K-remote
-# sysbench --test=memory --memory-block-size=64K --memory-total-size=100G --num-threads=1 run > sysbench-64K-local
+LD_PRELOAD=../preloadlib/bin/preloadlib.so sysbench --test=memory --memory-block-size=64K --memory-total-size=100G --num-threads=1 run > sysbench-64K-remote
+sysbench --test=memory --memory-block-size=64K --memory-total-size=100G --num-threads=1 run > sysbench-64K-local
 
-# LD_PRELOAD=../preloadlib/bin/preloadlib.so sysbench --test=memory --memory-block-size=1M --memory-total-size=100G --num-threads=1 run > sysbench-1M-remote
-# sysbench --test=memory --memory-block-size=1M --memory-total-size=100G --num-threads=1 run > sysbench-1M-local
+LD_PRELOAD=../preloadlib/bin/preloadlib.so sysbench --test=memory --memory-block-size=1M --memory-total-size=100G --num-threads=1 run > sysbench-1M-remote
+sysbench --test=memory --memory-block-size=1M --memory-total-size=100G --num-threads=1 run > sysbench-1M-local
 
-# LD_PRELOAD=../preloadlib/bin/preloadlib.so sysbench --test=memory --memory-block-size=4M --memory-total-size=100G --num-threads=1 run > sysbench-4M-remote
-# sysbench --test=memory --memory-block-size=4M --memory-total-size=100G --num-threads=1 run > sysbench-4M-local
+LD_PRELOAD=../preloadlib/bin/preloadlib.so sysbench --test=memory --memory-block-size=4M --memory-total-size=100G --num-threads=1 run > sysbench-4M-remote
+sysbench --test=memory --memory-block-size=4M --memory-total-size=100G --num-threads=1 run > sysbench-4M-local
 
 # MEMORY TEST
 
-memory_test 0 21 > mem-test-local
-LD_PRELOAD=../preloadlib/bin/preloadlib.so memory_test 0 21 > mem-test-remote
+# memory_test 0 21 > mem-test-local
+# LD_PRELOAD=../preloadlib/bin/preloadlib.so memory_test 0 21 > mem-test-remote
 
 
