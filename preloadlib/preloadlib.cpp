@@ -62,7 +62,7 @@ static void rmp_conn_init(void)
     //     6767};
 
     rmp::config conf{
-        "10.237.15.93",
+        "127.0.0.1",
         6768};
 
     std::lock_guard<std::mutex> guard(fault_handler_cr);
