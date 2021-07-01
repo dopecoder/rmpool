@@ -2,7 +2,9 @@
 
 
 # RMP: Remote Memory Pool
-## An extensible mechanism for pooling memory among remote machines
+### A Research project under [Prof. Kyle Hale](https://www.halek.co/):
+* [Nithin Rao](https://www.halek.co/authors/nithin-rao/) 
+* [Nanda Velugoti](https://www.halek.co/authors/nanda-velugoti/)
 
 ## To Run the test program, 
 
@@ -150,7 +152,7 @@ RMP as library has a
 7. This read/write will be resolved by requesting theserver by sending the appropriate
     handle that was stored in step 3 and the calculatedoffset of the page within the region.
     The offset is calculated by,
-       푂푓푓푠푒푡 =(퐹푎푢푙푡푖푛푔 퐴푑푑푟푒푠푠 − 푅푒푔푖표푛 푆푡푎푟푡 퐴푑푑푟푒푠푠) / 푃푎푔푒 푆푖푧푒
+       Offset =(Faulting Address - Region Start Address) / Page Size
 8. After repeating step 7 for all the accesses to allthe remote memory regions, the client
     then can send a free request to Server, which serverfrees the region in it’s memory after
     which the client does the same.
@@ -186,8 +188,8 @@ Client 4 Core, 1GB RAM, Gigabit Ethernet
 ```
 ● Program to allocate 1000, 10000, 100000 sized arraysand fill them up with numbers
 and calculate the sum.
-○ Sequential Read Write Execution
-○ Random Read Write Execution
+    ○ Sequential Read Write Execution
+    ○ Random Read Write Execution
 ● Insertion Sort Algorithm
 ```
 ### Results
@@ -301,8 +303,8 @@ is required
 ● Use upcoming linux kernel patches for userfaultfdthat resolves the problems that we
 faced earlier instead of using the Off-by-one invalidationsolution proposed before.
 ● Use RDMA instead of TCP/IP (expected performance improvements)
-○ Hardware (RoCE or Infiniband)
-○ Software (SoftRoCE)
+    ○ Hardware (RoCE or Infiniband)
+    ○ Software (SoftRoCE)
 ● Extend it to work with NDP (Near Data Processing)units.
 ● Support multiple servers and clients (distributedremote memory)
 ● A distributed memory with
