@@ -12,11 +12,11 @@ all: libsrvcli/libsrvcli.so rmp_client.o rmp_server.o
 libsrvcli/libsrvcli.so: 
 	$(MAKE) -C libsrvcli/ 
 
-rmp_server.o: rmp/rmp_server.cpp
-	$(CC) $(CFLAGS) rmp/rmp_server.cpp -o rmp_server.o $(LDFLAGS)
+rmp_server.o: server/rmp_server.cpp
+	$(CC) $(CFLAGS) server/rmp_server.cpp -o rmp_server.o $(LDFLAGS)
 
-rmp_client.o: rmp/rmp_client.cpp uffdman.o
-	$(CC) $(CFLAGS) rmp/rmp_client.cpp -o rmp_client.o $(LDFLAGS) -luffdman.o
+rmp_client.o: client/rmp_client.cpp uffdman.o
+	$(CC) $(CFLAGS) client/rmp_client.cpp -o rmp_client.o $(LDFLAGS) -luffdman.o
 
 uffdman.o: uffdman/uffdman.cpp
 	$(CC) $(CFLAGS) uffdman/uffdman.cpp -o uffdman.o $(LDFLAGS) 

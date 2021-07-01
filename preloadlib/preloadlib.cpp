@@ -40,7 +40,7 @@ extern std::mutex fault_handler_cr;
 void print(const char *str)
 {
     // #if DEBUG_PRINTS
-    // write(STDOUT_FILENO, str, strlen(str));
+    write(STDOUT_FILENO, str, strlen(str));
     // #endif
 }
 

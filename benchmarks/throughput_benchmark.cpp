@@ -277,7 +277,7 @@ int main(int argc, char *argv[])
     // bench_for_double(102400);
     // bench_for_double(1024000);
 
-    // bench_for_int_random(1024);
+    bench_for_int_random(1024);
     bench_for_int_random(10240);
     bench_for_int_random(102400);
     bench_for_int_random(1024000);

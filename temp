@@ -1,0 +1,19 @@
+--------------INT RAND 10240 ---------------
+Write Time 82.4949 seconds.
+Read Time 81.7159 seconds.
+Total Time 164.211 seconds.
+Avg Read Time 0.00798007 seconds.
+Avg Write Time 0.00805615 seconds.
+Avg Total Time 0.0160362 seconds.
+Sum 97697967
+SUM is invalid
+
+--------------INT RAND 102400 ---------------
+Write Time 1007.39 seconds.
+Read Time 1002 seconds.
+Total Time 2009.38 seconds.
+Avg Read Time 0.00978514 seconds.
+Avg Write Time 0.00983775 seconds.
+Avg Total Time 0.0196229 seconds.
+Sum 1795668907
+SUM is invalid
